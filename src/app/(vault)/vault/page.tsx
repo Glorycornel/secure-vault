@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { useVault } from "@/hooks/useVault";
+import { useIdleLock } from "@/hooks/useIdleLock";
 import PasswordGenerator from "@/components/vault/PasswordGenerator";
 import {
   deleteEncryptedNote,
@@ -25,6 +26,8 @@ function uid() {
   return crypto.randomUUID();
 }
 
+const IDLE_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes
+
 export default function VaultPage() {
   const router = useRouter();
   const { key, isUnlocked, unlock, lock } = useVault();
@@ -45,6 +48,12 @@ export default function VaultPage() {
     () => notes.find((n) => n.id === selectedId) ?? null,
     [notes, selectedId]
   );
+
+  // Auto-lock on inactivity (only when unlocked)
+  useIdleLock(isUnlocked, IDLE_TIMEOUT_MS, () => {
+    lock();
+    setUnlockError(null);
+  });
 
   // 1) Auth guard (Supabase)
   useEffect(() => {
