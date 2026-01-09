@@ -4,13 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { useVault } from "@/hooks/useVault";
+import PasswordGenerator from "@/components/vault/PasswordGenerator";
 import {
   deleteEncryptedNote,
   listEncryptedNotes,
   upsertEncryptedNote,
   type EncryptedNoteRecord,
 } from "@/lib/db/indexedDb";
-import { encryptJson, decryptJson } from "@/lib/crypto/aesGcm";
+import { decryptJson, encryptJson } from "@/lib/crypto/aesGcm";
 
 type DecryptedNote = {
   id: string;
@@ -45,6 +46,7 @@ export default function VaultPage() {
     [notes, selectedId]
   );
 
+  // 1) Auth guard (Supabase)
   useEffect(() => {
     async function run() {
       const { data } = await supabase.auth.getUser();
@@ -59,36 +61,50 @@ export default function VaultPage() {
   }, [router]);
 
   async function logout() {
-    lock(); // clear key
+    lock(); // clear in-memory key
     await supabase.auth.signOut();
     router.replace("/login");
   }
 
-  async function refreshNotes() {
+  async function refreshNotes(nextSelectedId?: string | null) {
     if (!key) return;
+
     const encrypted = await listEncryptedNotes();
-    // newest last because index is by updatedAt; we'll sort descending for UI
     const sorted = [...encrypted].sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1));
 
     const decrypted: DecryptedNote[] = [];
+
     for (const rec of sorted) {
-      const data = await decryptJson<{ title: string; body: string }>(key, rec.payload);
-      decrypted.push({
-        id: rec.id,
-        title: data.title,
-        body: data.body,
-        createdAt: rec.createdAt,
-        updatedAt: rec.updatedAt,
-      });
+      try {
+        const data = await decryptJson<{ title: string; body: string }>(key, rec.payload);
+        decrypted.push({
+          id: rec.id,
+          title: data.title,
+          body: data.body,
+          createdAt: rec.createdAt,
+          updatedAt: rec.updatedAt,
+        });
+      } catch {
+        // If a record is corrupted or decrypted with wrong key, skip it instead of crashing the UI.
+        // (The master password check should prevent wrong-key decrypts, but this is defensive.)
+      }
     }
+
     setNotes(decrypted);
-    if (!selectedId && decrypted[0]) setSelectedId(decrypted[0].id);
+
+    const desired = nextSelectedId ?? selectedId;
+    const stillExists = desired ? decrypted.some((n) => n.id === desired) : false;
+
+    if (!stillExists) {
+      setSelectedId(decrypted[0]?.id ?? null);
+    }
   }
 
   async function onUnlock(e: React.FormEvent) {
     e.preventDefault();
     setUnlockError(null);
     setUnlocking(true);
+
     try {
       await unlock(masterPassword);
       setMasterPassword("");
@@ -99,6 +115,7 @@ export default function VaultPage() {
     }
   }
 
+  // 2) When unlocked, load notes; when locked, clear UI state
   useEffect(() => {
     if (isUnlocked) {
       refreshNotes();
@@ -106,11 +123,14 @@ export default function VaultPage() {
       setNotes([]);
       setSelectedId(null);
     }
+    // refreshNotes depends on key + selectedId, but we only want this effect to run on unlock/lock.
+    // It is safe because refreshNotes checks `key` internally.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isUnlocked]);
 
   async function createNote() {
     if (!key) return;
+
     const now = new Date().toISOString();
     const id = uid();
     const payload = await encryptJson(key, { title: "Untitled", body: "" });
@@ -123,15 +143,15 @@ export default function VaultPage() {
     };
 
     await upsertEncryptedNote(rec);
-    await refreshNotes();
+    await refreshNotes(id);
     setSelectedId(id);
   }
 
   async function saveNote(id: string, title: string, body: string) {
     if (!key) return;
+
     const existing = notes.find((n) => n.id === id);
     const now = new Date().toISOString();
-
     const payload = await encryptJson(key, { title, body });
 
     const rec: EncryptedNoteRecord = {
@@ -142,13 +162,14 @@ export default function VaultPage() {
     };
 
     await upsertEncryptedNote(rec);
-    await refreshNotes();
+    await refreshNotes(id);
     setSelectedId(id);
   }
 
   async function removeNote(id: string) {
     await deleteEncryptedNote(id);
-    await refreshNotes();
+    const next = selectedId === id ? null : selectedId;
+    await refreshNotes(next);
     if (selectedId === id) setSelectedId(null);
   }
 
@@ -215,7 +236,10 @@ export default function VaultPage() {
           <div className="rounded-lg border p-3">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold">Notes</h2>
-              <button className="rounded-md bg-black px-3 py-2 text-xs text-white" onClick={createNote}>
+              <button
+                className="rounded-md bg-black px-3 py-2 text-xs text-white"
+                onClick={createNote}
+              >
                 New
               </button>
             </div>
@@ -243,16 +267,14 @@ export default function VaultPage() {
             </ul>
           </div>
 
-          {/* right: editor */}
-          <div className="md:col-span-2 rounded-lg border p-4">
+          {/* right: tools + editor */}
+          <div className="md:col-span-2 rounded-lg border p-4 space-y-4">
+            <PasswordGenerator />
+
             {!selected ? (
               <p className="text-sm text-gray-600">Select a note to view/edit.</p>
             ) : (
-              <NoteEditor
-                note={selected}
-                onSave={saveNote}
-                onDelete={removeNote}
-              />
+              <NoteEditor note={selected} onSave={saveNote} onDelete={removeNote} />
             )}
           </div>
         </section>
@@ -294,10 +316,7 @@ function NoteEditor({
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Title"
         />
-        <button
-          className="rounded-md border px-3 py-2 text-sm"
-          onClick={() => onDelete(note.id)}
-        >
+        <button className="rounded-md border px-3 py-2 text-sm" onClick={() => onDelete(note.id)}>
           Delete
         </button>
       </div>
