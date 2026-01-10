@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
+import { getSupabaseClient } from "@/lib/supabaseClient";
 import { useVault } from "@/hooks/useVault";
 import { useIdleLock } from "@/hooks/useIdleLock";
 import PasswordGenerator from "@/components/vault/PasswordGenerator";
@@ -58,18 +58,23 @@ export default function VaultPage() {
   // 1) Auth guard (Supabase)
   useEffect(() => {
     async function run() {
+      const supabase = getSupabaseClient();
       const { data } = await supabase.auth.getUser();
+
       if (!data.user) {
         router.replace("/login");
         return;
       }
+
       setEmail(data.user.email ?? null);
       setChecking(false);
     }
+
     run();
   }, [router]);
 
   async function logout() {
+    const supabase = getSupabaseClient();
     lock(); // clear in-memory key
     await supabase.auth.signOut();
     router.replace("/login");
@@ -350,4 +355,3 @@ function NoteEditor({
     </div>
   );
 }
- 
