@@ -283,7 +283,13 @@ export default function VaultPage() {
             {!selected ? (
               <p className="text-sm text-gray-600">Select a note to view/edit.</p>
             ) : (
-              <NoteEditor note={selected} onSave={saveNote} onDelete={removeNote} />
+              // key forces remount when switching notes; avoids setState-in-effect lint issue
+              <NoteEditor
+                key={selected.id}
+                note={selected}
+                onSave={saveNote}
+                onDelete={removeNote}
+              />
             )}
           </div>
         </section>
@@ -304,11 +310,6 @@ function NoteEditor({
   const [title, setTitle] = useState(note.title);
   const [body, setBody] = useState(note.body);
   const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    setTitle(note.title);
-    setBody(note.body);
-  }, [note.id, note.title, note.body]);
 
   async function save() {
     setSaving(true);
@@ -349,3 +350,4 @@ function NoteEditor({
     </div>
   );
 }
+ 
