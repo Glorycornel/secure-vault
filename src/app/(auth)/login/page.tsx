@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
 import { getSupabaseClient } from "@/lib/supabaseClient";
 
 export default function LoginPage() {
@@ -33,55 +35,98 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="mx-auto max-w-md p-6">
-      <h1 className="text-2xl font-semibold">Log in</h1>
+    <main className="relative min-h-screen w-full overflow-hidden">
+      {/* Background */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: "url('/images/background.png')" }}
+      />
 
-      <form onSubmit={onSubmit} className="mt-6 space-y-4">
-        <div className="space-y-2">
-          <label className="text-sm">Email</label>
-          <input
-            className="w-full rounded-md border px-3 py-2"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
-            required
-          />
-        </div>
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black/40" />
 
-        <div className="space-y-2">
-          <label className="text-sm">Password</label>
-          <input
-            className="w-full rounded-md border px-3 py-2"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
-            required
-          />
-        </div>
+      {/* Content */}
+      <div className="relative z-10 flex min-h-screen items-center justify-center px-6">
+        <div className="w-full max-w-md rounded-3xl border border-white/15 bg-white/10 p-8 backdrop-blur-xl shadow-2xl">
+          {/* Logo */}
+          <div className="mb-6 flex justify-center">
+            <Image
+              src="/images/logo.png"
+              alt="SecureVault logo"
+              width={260}
+              height={80}
+              priority
+              className="h-auto w-[220px] drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]"
+            />
+          </div>
 
-        {error ? (
-          <p className="text-sm text-red-600" role="alert">
-            {error}
+          {/* Heading */}
+          <h1 className="text-center text-2xl font-semibold text-white">
+            Welcome back
+          </h1>
+          <p className="mt-2 text-center text-sm text-white/70">
+            Log in to access your SecureVault
           </p>
-        ) : null}
 
-        <button
-          className="w-full rounded-md bg-black px-4 py-2 text-white disabled:opacity-60"
-          type="submit"
-          disabled={loading}
-        >
-          {loading ? "Logging in..." : "Log in"}
-        </button>
-      </form>
+          {/* Form */}
+          <form onSubmit={onSubmit} className="mt-6 space-y-4">
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-white/80">
+                Email
+              </label>
+              <input
+                className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm text-white placeholder-white/40 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-500/30"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                placeholder="you@example.com"
+                required
+              />
+            </div>
 
-      <p className="mt-4 text-sm">
-        New here?{" "}
-        <a className="underline" href="/signup">
-          Create an account
-        </a>
-      </p>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-white/80">
+                Password
+              </label>
+              <input
+                className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm text-white placeholder-white/40 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-500/30"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
+            {error && (
+              <p className="rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-300">
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-2 w-full rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_0_30px_rgba(168,85,247,0.45)] transition hover:scale-[1.01] disabled:opacity-60"
+            >
+              {loading ? "Logging in..." : "Log in"}
+            </button>
+          </form>
+
+          {/* Footer links */}
+          <p className="mt-6 text-center text-sm text-white/70">
+            New here?{" "}
+            <Link
+              href="/signup"
+              className="font-medium text-purple-300 hover:text-purple-200"
+            >
+              Create an account
+            </Link>
+          </p>
+        </div>
+      </div>
     </main>
   );
 }
