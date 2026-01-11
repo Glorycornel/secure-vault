@@ -1,36 +1,295 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🔐 SecureVault
 
-## Getting Started
+**SecureVault** is a privacy-first web application for storing **encrypted notes and passwords**.
+All sensitive data is encrypted **client-side** before storage, ensuring that only the user can access their secrets — not the server, not the database, not even SecureVault itself.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## ✨ Features
+
+* 🔑 **Client-side encryption (AES-256-GCM)**
+* 🧠 **Master password–derived key** (never stored or sent)
+* 🗂 **Encrypted local vault** using IndexedDB
+* 🔐 **Supabase authentication**
+* ⏱ **Auto-lock on inactivity**
+* 🔄 **Password generator**
+* 📱 **Responsive UI (desktop, tablet, mobile)**
+* 🐳 **Dockerized for consistent deployment**
+
+---
+
+## 🧱 Architecture Overview
+
+### High-level flow
+
+```
+User
+ └── Browser (Next.js)
+      ├── Supabase Auth (email/password)
+      ├── Crypto (Web Crypto API)
+      ├── IndexedDB (encrypted records)
+      └── UI (Vault, Notes, Passwords)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Key architectural decisions
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Area       | Decision                          |
+| ---------- | --------------------------------- |
+| Frontend   | Next.js (App Router)              |
+| Auth       | Supabase (email/password)         |
+| Encryption | Web Crypto API (AES-GCM + PBKDF2) |
+| Storage    | IndexedDB (browser-local)         |
+| Secrets    | Never stored in plaintext         |
+| Deployment | Docker + Vercel compatible        |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 🔐 Cryptographic Model (Important)
 
-To learn more about Next.js, take a look at the following resources:
+SecureVault uses a **zero-knowledge design**.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Master Password
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+* Chosen by the user
+* **Never stored**
+* **Never sent to any server**
+* Used only to derive an encryption key in memory
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Key Derivation
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+Master Password
+   ↓
+PBKDF2 (SHA-256, 210,000 iterations)
+   ↓
+256-bit AES-GCM key
+```
+
+* PBKDF2 slows down brute-force attacks
+* Salt is stored locally
+* Key exists **only in memory**
+* Locking or refreshing clears the key
+
+---
+
+### Encryption
+
+* Algorithm: **AES-256-GCM**
+* Each record has:
+
+  * Random IV
+  * Encrypted payload
+  * Authentication tag
+
+Stored data looks like:
+
+```json
+{
+  "id": "uuid",
+  "payload": "base64(ciphertext)",
+  "iv": "base64(iv)",
+  "createdAt": "...",
+  "updatedAt": "..."
+}
+```
+
+➡️ **No readable titles or content are ever stored**
+
+---
+
+## 🗃 Data Storage Strategy
+
+| Data                  | Location        |
+| --------------------- | --------------- |
+| Auth session          | Supabase        |
+| Encrypted vault       | IndexedDB       |
+| Encryption keys       | In-memory only  |
+| Environment variables | `.env` / Docker |
+
+This design ensures:
+
+* Server breach ≠ data breach
+* Database access ≠ secret access
+
+---
+
+## ⏱ Auto-Lock Model
+
+* Vault auto-locks after **5 minutes of inactivity**
+* Any user interaction resets the timer
+* On lock:
+
+  * Encryption key is wiped
+  * UI is cleared
+  * Re-unlock requires master password
+
+---
+
+## ⚖️ Trade-offs & Design Decisions
+
+### Why client-side encryption?
+
+✅ Maximum privacy
+❌ Harder to sync across devices (future feature)
+
+---
+
+### Why IndexedDB instead of server storage?
+
+✅ Zero-knowledge security
+✅ Fast local access
+❌ No automatic cloud backup
+
+---
+
+### Why Supabase?
+
+✅ Simple, secure authentication
+✅ Managed infrastructure
+❌ Auth only — not trusted with secrets
+
+---
+
+### What happens if the user forgets their master password?
+
+❌ **Data cannot be recovered**
+
+This is intentional and aligns with:
+
+* Password managers
+* Zero-knowledge security principles
+
+---
+
+## 🛠 Tech Stack
+
+* **Next.js 16** (App Router)
+* **TypeScript**
+* **Tailwind CSS**
+* **Supabase Auth**
+* **Web Crypto API**
+* **IndexedDB**
+* **Docker**
+* **pnpm**
+
+---
+
+## 🚀 Getting Started (Local Setup)
+
+### 1️⃣ Clone the repository
+
+```bash
+git clone https://github.com/your-username/secure-vault.git
+cd secure-vault
+```
+
+---
+
+### 2️⃣ Install dependencies
+
+```bash
+pnpm install
+```
+
+---
+
+### 3️⃣ Create environment variables
+
+Create a `.env` file in the project root:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+> ⚠️ These keys are **public by design** but should still be rotated if leaked.
+
+---
+
+### 4️⃣ Run the app locally
+
+```bash
+pnpm dev
+```
+
+Visit:
+👉 **[http://localhost:3000](http://localhost:3000)**
+
+---
+
+## 🐳 Running with Docker
+
+### Build & start
+
+```bash
+docker compose up --build
+```
+
+App runs at:
+
+```
+http://localhost:3000
+```
+
+---
+
+## 🔐 Security Notes
+
+* `.env` is **never committed**
+* Pre-commit hooks enforce:
+
+  * Linting
+  * Tests
+* Supabase anon key is rotated if exposed
+* No secrets are logged
+* Encryption happens before storage
+
+---
+
+## 🧪 Testing
+
+```bash
+pnpm test
+```
+
+Tests cover:
+
+* Crypto utilities
+* Vault state handling
+* IndexedDB helpers
+
+---
+
+## 📦 Deployment
+
+SecureVault is **Vercel-ready**:
+
+1. Push to GitHub
+2. Import project into Vercel
+3. Add environment variables
+4. Deploy
+
+---
+
+## 🛣 Roadmap
+
+* Cloud-encrypted sync
+* WebAuthn / biometrics
+* Browser extension
+* Password autofill
+* Export / backup vault
+
+---
+
+## 👤 Author
+
+**Built by:** *Glory Chioma Anunah*
+**Focus:** Security-first frontend architecture
+**Philosophy:** *Privacy by design, not by policy*
+
+
+
+
+
