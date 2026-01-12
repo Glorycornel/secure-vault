@@ -3,11 +3,23 @@ import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 import prettier from "eslint-config-prettier";
 
-const eslintConfig = defineConfig([
+export default defineConfig([
+  // ✅ Ignore generated & build artifacts (ESLint v9 flat config)
+  globalIgnores([
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+
+    // ✅ PWA / Workbox generated files
+    "public/sw.js",
+    "public/workbox-*.js",
+    "public/icons/**",
+  ]),
+
   ...nextVitals,
   ...nextTs,
-  prettier, // ⬅️ disables conflicting ESLint rules
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
-]);
 
-export default eslintConfig;
+  // ⬅️ disables conflicting ESLint rules
+  prettier,
+]);
