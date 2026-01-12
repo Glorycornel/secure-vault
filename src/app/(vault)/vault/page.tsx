@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -10,11 +10,19 @@ import { useIdleLock } from "@/hooks/useIdleLock";
 import PasswordGenerator from "@/components/vault/PasswordGenerator";
 import {
   deleteEncryptedNote,
+  getMeta,
   listEncryptedNotes,
   upsertEncryptedNote,
   type EncryptedNoteRecord,
 } from "@/lib/db/indexedDb";
 import { decryptJson, encryptJson } from "@/lib/crypto/aesGcm";
+
+// ✅ Cloud sync helpers
+import { syncDownFromCloud } from "@/lib/sync/syncDown";
+import {
+  upsertRemoteEncryptedNote,
+  deleteRemoteEncryptedNote,
+} from "@/lib/supabase/notesSync";
 
 type DecryptedNote = {
   id: string;
@@ -29,6 +37,10 @@ function uid() {
 }
 
 const IDLE_TIMEOUT_MS = 5 * 60 * 1000;
+const CLOUD_POLL_MS = 10_000; // ✅ background polling while unlocked
+
+// Must match CHECK_KEY in useVault.ts
+const CHECK_KEY = "vault_check_v1";
 
 export default function VaultPage() {
   const router = useRouter();
@@ -36,12 +48,18 @@ export default function VaultPage() {
 
   const [checking, setChecking] = useState(true);
 
+  // ✅ Master password UX: explicit setup vs unlock
+  const [needsMasterSetup, setNeedsMasterSetup] = useState<boolean | null>(null);
   const [masterPassword, setMasterPassword] = useState("");
+  const [confirmMasterPassword, setConfirmMasterPassword] = useState("");
   const [unlocking, setUnlocking] = useState(false);
   const [unlockError, setUnlockError] = useState<string | null>(null);
 
   const [notes, setNotes] = useState<DecryptedNote[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // ✅ prevent overlapping sync calls
+  const syncingRef = useRef(false);
 
   const selected = useMemo(
     () => notes.find((n) => n.id === selectedId) ?? null,
@@ -63,7 +81,21 @@ export default function VaultPage() {
         return;
       }
 
-      // email was previously set but unused -> removed to fix lint warning
+      // ✅ Detect if this device has completed master password setup
+      try {
+        const check = await getMeta(CHECK_KEY);
+        setNeedsMasterSetup(!check);
+      } catch {
+        setNeedsMasterSetup(true);
+      }
+
+      // ✅ Pull encrypted notes from cloud into IndexedDB (best effort; ok if offline)
+      try {
+        await syncDownFromCloud();
+      } catch (e) {
+        console.warn("Initial sync down failed (ok if offline):", e);
+      }
+
       setChecking(false);
     }
 
@@ -101,15 +133,18 @@ export default function VaultPage() {
             createdAt: rec.createdAt,
             updatedAt: rec.updatedAt,
           });
-        } catch {
-          // ignore records that fail to decrypt (likely from old key or corrupted payload)
+        } catch (e) {
+          // helpful during debugging; safe to keep (doesn't leak secrets)
+          console.warn("Failed to decrypt note", rec.id, e);
         }
       }
 
       setNotes(decrypted);
 
       const desired = nextSelectedId ?? selectedId;
-      const stillExists = desired ? decrypted.some((n) => n.id === desired) : false;
+      const stillExists = desired
+        ? decrypted.some((n) => n.id === desired)
+        : false;
 
       if (!stillExists) setSelectedId(decrypted[0]?.id ?? null);
     },
@@ -119,11 +154,31 @@ export default function VaultPage() {
   async function onUnlock(e: React.FormEvent) {
     e.preventDefault();
     setUnlockError(null);
+
+    // ✅ Make it explicit when setting a master password (first-time on this device)
+    if (needsMasterSetup) {
+      if (masterPassword.length < 8) {
+        setUnlockError("Master password must be at least 8 characters.");
+        return;
+      }
+      if (masterPassword !== confirmMasterPassword) {
+        setUnlockError("Master passwords do not match.");
+        return;
+      }
+      if (masterPassword.length < 12) {
+        // UX nudge (not blocking)
+        // You can remove this if you prefer
+        console.warn("Consider using 12+ characters for your master password.");
+      }
+    }
+
     setUnlocking(true);
 
     try {
       await unlock(masterPassword);
       setMasterPassword("");
+      setConfirmMasterPassword("");
+      setNeedsMasterSetup(false);
     } catch (err) {
       setUnlockError(
         err instanceof Error ? err.message : "Failed to unlock vault"
@@ -133,14 +188,55 @@ export default function VaultPage() {
     }
   }
 
+  // ✅ On unlock: sync down FIRST, then decrypt/list (so other-device notes appear)
   useEffect(() => {
-    if (isUnlocked) {
-      refreshNotes();
-    } else {
+    if (!isUnlocked) {
       setNotes([]);
       setSelectedId(null);
+      return;
     }
+
+    (async () => {
+      try {
+        await syncDownFromCloud();
+      } catch (e) {
+        console.warn("Sync down after unlock failed (ok if offline):", e);
+      }
+      await refreshNotes();
+    })();
   }, [isUnlocked, refreshNotes]);
+
+  // ✅ Background polling while unlocked (so devices see each other's changes)
+  useEffect(() => {
+    if (!isUnlocked) return;
+
+    let alive = true;
+
+    const tick = async () => {
+      if (!alive) return;
+      if (syncingRef.current) return;
+
+      syncingRef.current = true;
+      try {
+        const res = await syncDownFromCloud();
+        if (alive && res?.imported > 0) {
+          await refreshNotes(selectedId);
+        }
+      } catch (e) {
+        console.warn("Background sync failed:", e);
+      } finally {
+        syncingRef.current = false;
+      }
+    };
+
+    tick();
+    const t = setInterval(tick, CLOUD_POLL_MS);
+
+    return () => {
+      alive = false;
+      clearInterval(t);
+    };
+  }, [isUnlocked, refreshNotes, selectedId]);
 
   async function createNote() {
     if (!key) return;
@@ -157,6 +253,17 @@ export default function VaultPage() {
     };
 
     await upsertEncryptedNote(rec);
+
+    try {
+      await upsertRemoteEncryptedNote({
+        id,
+        title: "Untitled",
+        payload,
+      });
+    } catch (e) {
+      console.error("Cloud sync failed (create):", e);
+    }
+
     await refreshNotes(id);
     setSelectedId(id);
   }
@@ -176,12 +283,30 @@ export default function VaultPage() {
     };
 
     await upsertEncryptedNote(rec);
+
+    try {
+      await upsertRemoteEncryptedNote({
+        id,
+        title: title || "Untitled",
+        payload,
+      });
+    } catch (e) {
+      console.error("Cloud sync failed (save):", e);
+    }
+
     await refreshNotes(id);
     setSelectedId(id);
   }
 
   async function removeNote(id: string) {
     await deleteEncryptedNote(id);
+
+    try {
+      await deleteRemoteEncryptedNote(id);
+    } catch (e) {
+      console.error("Cloud delete failed:", e);
+    }
+
     await refreshNotes(selectedId === id ? null : selectedId);
     if (selectedId === id) setSelectedId(null);
   }
@@ -236,14 +361,25 @@ export default function VaultPage() {
           </div>
         </header>
 
-        {/* Unlock */}
+        {/* Unlock / Setup */}
         {!isUnlocked ? (
           <section className="mx-auto mt-12 max-w-md rounded-3xl border border-white/15 bg-white/10 p-6 backdrop-blur-xl">
             <h2 className="text-lg font-semibold text-white">
-              Unlock your vault
+              {needsMasterSetup ? "Set your master password" : "Unlock your vault"}
             </h2>
+
             <p className="mt-1 text-sm text-white/70">
-              Your master password derives the encryption key. We never store it.
+              Your <span className="font-medium text-white/85">login password</span> (Supabase)
+              is separate from your <span className="font-medium text-white/85">master password</span>.
+              {needsMasterSetup ? (
+                <>
+                  {" "}
+                  This master password will be required to unlock your vault on any device.
+                  We never store it.
+                </>
+              ) : (
+                <> We never store your master password.</>
+              )}
             </p>
 
             <form onSubmit={onUnlock} className="mt-4 space-y-4">
@@ -252,10 +388,24 @@ export default function VaultPage() {
                 type="password"
                 value={masterPassword}
                 onChange={(e) => setMasterPassword(e.target.value)}
-                placeholder="Master password"
+                placeholder={needsMasterSetup ? "Create master password" : "Master password"}
                 required
                 minLength={8}
+                autoComplete="new-password"
               />
+
+              {needsMasterSetup && (
+                <input
+                  className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-sm text-white outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/30"
+                  type="password"
+                  value={confirmMasterPassword}
+                  onChange={(e) => setConfirmMasterPassword(e.target.value)}
+                  placeholder="Confirm master password"
+                  required
+                  minLength={8}
+                  autoComplete="new-password"
+                />
+              )}
 
               {unlockError && (
                 <p className="rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-300">
@@ -268,8 +418,25 @@ export default function VaultPage() {
                 disabled={unlocking}
                 className="w-full rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_0_30px_rgba(168,85,247,0.45)] disabled:opacity-60"
               >
-                {unlocking ? "Unlocking…" : "Unlock"}
+                {unlocking
+                  ? needsMasterSetup
+                    ? "Setting up…"
+                    : "Unlocking…"
+                  : needsMasterSetup
+                  ? "Set master password"
+                  : "Unlock"}
               </button>
+
+              {needsMasterSetup && (
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3 text-xs text-white/70">
+                  <div className="font-semibold text-white/85">Important</div>
+                  <ul className="mt-1 list-disc space-y-1 pl-4">
+                    <li>We can’t recover your master password.</li>
+                    <li>Use a strong password (12+ characters recommended).</li>
+                    <li>Your notes remain encrypted even on our servers.</li>
+                  </ul>
+                </div>
+              )}
             </form>
           </section>
         ) : (
@@ -317,6 +484,8 @@ export default function VaultPage() {
 
             {/* Editor */}
             <div className="md:col-span-2 rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-xl space-y-4">
+              {/* ✅ Password generator UX: strength indicator + length dropdown
+                  (You'll implement this inside the PasswordGenerator component.) */}
               <PasswordGenerator />
 
               {!selected ? (
