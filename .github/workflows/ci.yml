@@ -24,7 +24,9 @@ jobs:
         run: pnpm install
 
       - name: Format check
-        run: pnpm format:check
+        run: |
+          pnpm prettier --version
+          pnpm format:check -- --log-level debug
 
       - name: Lint
         run: pnpm lint
