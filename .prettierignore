@@ -1,3 +1,11 @@
 .next
 node_modules
 pnpm-lock.yaml
+# Build output
+out
+build
+
+# PWA generated files
+public/sw.js
+public/workbox-*.js
+public/icons
