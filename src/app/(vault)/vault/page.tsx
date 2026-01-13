@@ -114,9 +114,7 @@ export default function VaultPage() {
       if (!key) return;
 
       const encrypted = await listEncryptedNotes();
-      const sorted = [...encrypted].sort((a, b) =>
-        a.updatedAt < b.updatedAt ? 1 : -1
-      );
+      const sorted = [...encrypted].sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1));
 
       const decrypted: DecryptedNote[] = [];
 
@@ -142,9 +140,7 @@ export default function VaultPage() {
       setNotes(decrypted);
 
       const desired = nextSelectedId ?? selectedId;
-      const stillExists = desired
-        ? decrypted.some((n) => n.id === desired)
-        : false;
+      const stillExists = desired ? decrypted.some((n) => n.id === desired) : false;
 
       if (!stillExists) setSelectedId(decrypted[0]?.id ?? null);
     },
@@ -180,9 +176,7 @@ export default function VaultPage() {
       setConfirmMasterPassword("");
       setNeedsMasterSetup(false);
     } catch (err) {
-      setUnlockError(
-        err instanceof Error ? err.message : "Failed to unlock vault"
-      );
+      setUnlockError(err instanceof Error ? err.message : "Failed to unlock vault");
     } finally {
       setUnlocking(false);
     }
@@ -313,7 +307,7 @@ export default function VaultPage() {
 
   if (checking) {
     return (
-      <main className="min-h-screen flex items-center justify-center text-white">
+      <main className="flex min-h-screen items-center justify-center text-white">
         Checking session…
       </main>
     );
@@ -369,13 +363,14 @@ export default function VaultPage() {
             </h2>
 
             <p className="mt-1 text-sm text-white/70">
-              Your <span className="font-medium text-white/85">login password</span> (Supabase)
-              is separate from your <span className="font-medium text-white/85">master password</span>.
+              Your <span className="font-medium text-white/85">login password</span>{" "}
+              (Supabase) is separate from your{" "}
+              <span className="font-medium text-white/85">master password</span>.
               {needsMasterSetup ? (
                 <>
                   {" "}
-                  This master password will be required to unlock your vault on any device.
-                  We never store it.
+                  This master password will be required to unlock your vault on any
+                  device. We never store it.
                 </>
               ) : (
                 <> We never store your master password.</>
@@ -388,7 +383,9 @@ export default function VaultPage() {
                 type="password"
                 value={masterPassword}
                 onChange={(e) => setMasterPassword(e.target.value)}
-                placeholder={needsMasterSetup ? "Create master password" : "Master password"}
+                placeholder={
+                  needsMasterSetup ? "Create master password" : "Master password"
+                }
                 required
                 minLength={8}
                 autoComplete="new-password"
@@ -423,8 +420,8 @@ export default function VaultPage() {
                     ? "Setting up…"
                     : "Unlocking…"
                   : needsMasterSetup
-                  ? "Set master password"
-                  : "Unlock"}
+                    ? "Set master password"
+                    : "Unlock"}
               </button>
 
               {needsMasterSetup && (
@@ -455,9 +452,7 @@ export default function VaultPage() {
 
               <ul className="mt-3 space-y-2">
                 {notes.length === 0 ? (
-                  <li className="text-sm text-white/60">
-                    No notes yet. Create one.
-                  </li>
+                  <li className="text-sm text-white/60">No notes yet. Create one.</li>
                 ) : (
                   notes.map((n) => (
                     <li key={n.id}>
@@ -483,15 +478,13 @@ export default function VaultPage() {
             </div>
 
             {/* Editor */}
-            <div className="md:col-span-2 rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-xl space-y-4">
+            <div className="space-y-4 rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-xl md:col-span-2">
               {/* ✅ Password generator UX: strength indicator + length dropdown
                   (You'll implement this inside the PasswordGenerator component.) */}
               <PasswordGenerator />
 
               {!selected ? (
-                <p className="text-sm text-white/60">
-                  Select a note to view or edit.
-                </p>
+                <p className="text-sm text-white/60">Select a note to view or edit.</p>
               ) : (
                 <NoteEditor
                   key={selected.id}

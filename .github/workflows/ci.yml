@@ -26,7 +26,7 @@ jobs:
       - name: Format check
         run: |
           pnpm prettier --version
-          pnpm format:check -- --log-level debug
+          pnpm format:check
 
       - name: Lint
         run: pnpm lint

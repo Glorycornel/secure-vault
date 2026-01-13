@@ -47,7 +47,7 @@ export default function LoginPage() {
 
       {/* Content */}
       <div className="relative z-10 flex min-h-screen items-center justify-center px-6">
-        <div className="w-full max-w-md rounded-3xl border border-white/15 bg-white/10 p-8 backdrop-blur-xl shadow-2xl">
+        <div className="w-full max-w-md rounded-3xl border border-white/15 bg-white/10 p-8 shadow-2xl backdrop-blur-xl">
           {/* Logo */}
           <div className="mb-6 flex justify-center">
             <Image
@@ -61,9 +61,7 @@ export default function LoginPage() {
           </div>
 
           {/* Heading */}
-          <h1 className="text-center text-2xl font-semibold text-white">
-            Welcome back
-          </h1>
+          <h1 className="text-center text-2xl font-semibold text-white">Welcome back</h1>
           <p className="mt-2 text-center text-sm text-white/70">
             Log in to access your SecureVault
           </p>
@@ -71,11 +69,9 @@ export default function LoginPage() {
           {/* Form */}
           <form onSubmit={onSubmit} className="mt-6 space-y-4">
             <div className="space-y-1">
-              <label className="text-xs font-medium text-white/80">
-                Email
-              </label>
+              <label className="text-xs font-medium text-white/80">Email</label>
               <input
-                className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm text-white placeholder-white/40 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-500/30"
+                className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm text-white placeholder-white/40 transition outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/30"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -86,11 +82,9 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-medium text-white/80">
-                Password
-              </label>
+              <label className="text-xs font-medium text-white/80">Password</label>
               <input
-                className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm text-white placeholder-white/40 outline-none transition focus:border-purple-400 focus:ring-2 focus:ring-purple-500/30"
+                className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm text-white placeholder-white/40 transition outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/30"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

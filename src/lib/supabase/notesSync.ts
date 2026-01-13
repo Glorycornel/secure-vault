@@ -58,7 +58,6 @@ export async function upsertRemoteEncryptedNote(input: {
   if (error) throw error;
 }
 
-  
 export async function deleteRemoteEncryptedNote(id: string) {
   const supabase = getSupabaseClient();
   const { error } = await supabase.from("encrypted_notes").delete().eq("id", id);

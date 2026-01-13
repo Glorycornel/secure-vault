@@ -61,9 +61,7 @@ export async function syncDownFromCloud() {
 
     // If either timestamp is invalid, prefer remote (safer for sync correctness)
     const shouldImport =
-      !Number.isFinite(localT) ||
-      !Number.isFinite(remoteT) ||
-      remoteT > localT;
+      !Number.isFinite(localT) || !Number.isFinite(remoteT) || remoteT > localT;
 
     if (!shouldImport) {
       skippedOlder++;

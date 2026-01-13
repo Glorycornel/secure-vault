@@ -14,8 +14,8 @@ export default function HomePage() {
       <div className="absolute inset-0 bg-black/35" />
 
       {/* Star layers */}
-      <div className="pointer-events-none absolute inset-0 sv-stars opacity-60" />
-      <div className="pointer-events-none absolute inset-0 sv-twinkle opacity-80" />
+      <div className="sv-stars pointer-events-none absolute inset-0 opacity-60" />
+      <div className="sv-twinkle pointer-events-none absolute inset-0 opacity-80" />
 
       {/* Foreground */}
       <div className="relative z-10 flex min-h-screen flex-col items-center">
@@ -28,14 +28,7 @@ export default function HomePage() {
               width={460}
               height={140}
               priority
-              className="
-                h-auto
-                w-[200px]
-                sm:w-[260px]
-                md:w-[340px]
-                lg:w-[420px]
-                drop-shadow-[0_0_25px_rgba(168,85,247,0.6)]
-              "
+              className="h-auto w-[200px] drop-shadow-[0_0_25px_rgba(168,85,247,0.6)] sm:w-[260px] md:w-[340px] lg:w-[420px]"
             />
           </Link>
         </header>
@@ -44,13 +37,13 @@ export default function HomePage() {
         <section className="flex w-full flex-1 items-center px-4 pb-12">
           <div className="mx-auto w-full max-w-3xl text-center">
             {/* Badge */}
-            <div className="inline-flex sv-float items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-medium text-white/90 backdrop-blur">
+            <div className="sv-float inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs font-medium text-white/90 backdrop-blur">
               <span className="h-2 w-2 rounded-full bg-purple-400" />
               Private notes & passwords, safely stored
             </div>
 
             {/* Heading */}
-            <h1 className="mt-5 text-3xl font-semibold leading-tight tracking-tight text-white sm:text-4xl md:text-6xl">
+            <h1 className="mt-5 text-3xl leading-tight font-semibold tracking-tight text-white sm:text-4xl md:text-6xl">
               Protect Your Secrets <br />
               <span className="bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
                 with SecureVault
@@ -59,8 +52,8 @@ export default function HomePage() {
 
             {/* Description */}
             <p className="mx-auto mt-5 max-w-xl text-sm leading-relaxed text-white/85 sm:text-base md:text-lg">
-              SecureVault keeps your private notes and passwords safe in one place.
-              Simple to use, beautifully designed, and built to protect your privacy.
+              SecureVault keeps your private notes and passwords safe in one place. Simple
+              to use, beautifully designed, and built to protect your privacy.
             </p>
 
             {/* Buttons */}
@@ -82,9 +75,18 @@ export default function HomePage() {
 
             {/* Highlights */}
             <div className="mt-10 grid gap-4 sm:grid-cols-3 sm:gap-6">
-              <Card title="Secure Notes" desc="Keep important notes private and organised." />
-              <Card title="Password Vault" desc="Save and generate strong passwords easily." />
-              <Card title="Auto Lock" desc="Locks automatically when inactive for a while." />
+              <Card
+                title="Secure Notes"
+                desc="Keep important notes private and organised."
+              />
+              <Card
+                title="Password Vault"
+                desc="Save and generate strong passwords easily."
+              />
+              <Card
+                title="Auto Lock"
+                desc="Locks automatically when inactive for a while."
+              />
             </div>
 
             {/* Footer */}
@@ -100,7 +102,7 @@ export default function HomePage() {
 
 function Card({ title, desc }: { title: string; desc: string }) {
   return (
-    <div className="rounded-2xl border border-white/15 bg-white/10 p-5 backdrop-blur text-center">
+    <div className="rounded-2xl border border-white/15 bg-white/10 p-5 text-center backdrop-blur">
       <div className="text-sm font-semibold text-white/95">{title}</div>
       <p className="mt-2 text-xs leading-relaxed text-white/75">{desc}</p>
     </div>

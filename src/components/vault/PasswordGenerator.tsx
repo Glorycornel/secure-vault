@@ -1,10 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import {
-  generatePassword,
-  type PasswordOptions,
-} from "@/lib/utils/passwordGenerator";
+import { generatePassword, type PasswordOptions } from "@/lib/utils/passwordGenerator";
 
 type Strength = {
   label: "Weak" | "Medium" | "Strong";
@@ -85,10 +82,7 @@ export default function PasswordGenerator() {
     return strengthOf(value, opts);
   }, [value, opts]);
 
-  function update<K extends keyof PasswordOptions>(
-    key: K,
-    val: PasswordOptions[K]
-  ) {
+  function update<K extends keyof PasswordOptions>(key: K, val: PasswordOptions[K]) {
     setOpts((p) => ({ ...p, [key]: val }));
   }
 
@@ -125,7 +119,7 @@ export default function PasswordGenerator() {
       <div className="mt-4 space-y-4">
         {/* Length dropdown */}
         <div className="flex items-center gap-3">
-          <label className="text-sm text-white/80 w-24">Length</label>
+          <label className="w-24 text-sm text-white/80">Length</label>
           <select
             className="w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm text-white outline-none"
             value={opts.length}
@@ -188,8 +182,8 @@ export default function PasswordGenerator() {
                   strength.level === 1
                     ? "text-red-300"
                     : strength.level === 2
-                    ? "text-yellow-200"
-                    : "text-green-200"
+                      ? "text-yellow-200"
+                      : "text-green-200"
                 }
               >
                 {strength.label}
@@ -217,9 +211,7 @@ export default function PasswordGenerator() {
           </div>
         </div>
 
-        {error ? (
-          <p className="text-sm text-red-300">{error}</p>
-        ) : null}
+        {error ? <p className="text-sm text-red-300">{error}</p> : null}
 
         {/* Output */}
         <div className="flex gap-2">
@@ -230,7 +222,7 @@ export default function PasswordGenerator() {
             placeholder="Generate a password..."
           />
           <button
-            className="rounded-xl border border-white/25 bg-white/10 px-3 py-2 text-sm text-white disabled:opacity-60 hover:bg-white/15"
+            className="rounded-xl border border-white/25 bg-white/10 px-3 py-2 text-sm text-white hover:bg-white/15 disabled:opacity-60"
             onClick={onCopy}
             disabled={!value}
           >

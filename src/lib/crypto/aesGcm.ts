@@ -1,7 +1,10 @@
 import { base64ToBytes, bytesToBase64, utf8ToBytes, bytesToUtf8 } from "./encoding";
 import type { EncryptedPayload } from "@/lib/db/indexedDb";
 
-export async function encryptJson(key: CryptoKey, data: unknown): Promise<EncryptedPayload> {
+export async function encryptJson(
+  key: CryptoKey,
+  data: unknown
+): Promise<EncryptedPayload> {
   const iv = crypto.getRandomValues(new Uint8Array(12)); // 96-bit IV recommended for GCM
   const plaintext = utf8ToBytes(JSON.stringify(data));
 
@@ -17,7 +20,10 @@ export async function encryptJson(key: CryptoKey, data: unknown): Promise<Encryp
   };
 }
 
-export async function decryptJson<T>(key: CryptoKey, payload: EncryptedPayload): Promise<T> {
+export async function decryptJson<T>(
+  key: CryptoKey,
+  payload: EncryptedPayload
+): Promise<T> {
   const iv = base64ToBytes(payload.iv);
   const ciphertext = base64ToBytes(payload.ciphertext);
 

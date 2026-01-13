@@ -7,14 +7,14 @@ All sensitive data is encrypted **client-side** before storage, ensuring that on
 
 ## ✨ Features
 
-* 🔑 **Client-side encryption (AES-256-GCM)**
-* 🧠 **Master password–derived key** (never stored or sent)
-* 🗂 **Encrypted local vault** using IndexedDB
-* 🔐 **Supabase authentication**
-* ⏱ **Auto-lock on inactivity**
-* 🔄 **Password generator**
-* 📱 **Responsive UI (desktop, tablet, mobile)**
-* 🐳 **Dockerized for consistent deployment**
+- 🔑 **Client-side encryption (AES-256-GCM)**
+- 🧠 **Master password–derived key** (never stored or sent)
+- 🗂 **Encrypted local vault** using IndexedDB
+- 🔐 **Supabase authentication**
+- ⏱ **Auto-lock on inactivity**
+- 🔄 **Password generator**
+- 📱 **Responsive UI (desktop, tablet, mobile)**
+- 🐳 **Dockerized for consistent deployment**
 
 ---
 
@@ -50,10 +50,10 @@ SecureVault uses a **zero-knowledge design**.
 
 ### Master Password
 
-* Chosen by the user
-* **Never stored**
-* **Never sent to any server**
-* Used only to derive an encryption key in memory
+- Chosen by the user
+- **Never stored**
+- **Never sent to any server**
+- Used only to derive an encryption key in memory
 
 ---
 
@@ -67,21 +67,20 @@ PBKDF2 (SHA-256, 210,000 iterations)
 256-bit AES-GCM key
 ```
 
-* PBKDF2 slows down brute-force attacks
-* Salt is stored locally
-* Key exists **only in memory**
-* Locking or refreshing clears the key
+- PBKDF2 slows down brute-force attacks
+- Salt is stored locally
+- Key exists **only in memory**
+- Locking or refreshing clears the key
 
 ---
 
 ### Encryption
 
-* Algorithm: **AES-256-GCM**
-* Each record has:
-
-  * Random IV
-  * Encrypted payload
-  * Authentication tag
+- Algorithm: **AES-256-GCM**
+- Each record has:
+  - Random IV
+  - Encrypted payload
+  - Authentication tag
 
 Stored data looks like:
 
@@ -110,20 +109,19 @@ Stored data looks like:
 
 This design ensures:
 
-* Server breach ≠ data breach
-* Database access ≠ secret access
+- Server breach ≠ data breach
+- Database access ≠ secret access
 
 ---
 
 ## ⏱ Auto-Lock Model
 
-* Vault auto-locks after **5 minutes of inactivity**
-* Any user interaction resets the timer
-* On lock:
-
-  * Encryption key is wiped
-  * UI is cleared
-  * Re-unlock requires master password
+- Vault auto-locks after **5 minutes of inactivity**
+- Any user interaction resets the timer
+- On lock:
+  - Encryption key is wiped
+  - UI is cleared
+  - Re-unlock requires master password
 
 ---
 
@@ -158,21 +156,21 @@ This design ensures:
 
 This is intentional and aligns with:
 
-* Password managers
-* Zero-knowledge security principles
+- Password managers
+- Zero-knowledge security principles
 
 ---
 
 ## 🛠 Tech Stack
 
-* **Next.js 16** (App Router)
-* **TypeScript**
-* **Tailwind CSS**
-* **Supabase Auth**
-* **Web Crypto API**
-* **IndexedDB**
-* **Docker**
-* **pnpm**
+- **Next.js 16** (App Router)
+- **TypeScript**
+- **Tailwind CSS**
+- **Supabase Auth**
+- **Web Crypto API**
+- **IndexedDB**
+- **Docker**
+- **pnpm**
 
 ---
 
@@ -237,14 +235,14 @@ http://localhost:3000
 
 ## 🔐 Security Notes
 
-* `.env` is **never committed**
-* Pre-commit hooks enforce:
+- `.env` is **never committed**
+- Pre-commit hooks enforce:
+  - Linting
+  - Tests
 
-  * Linting
-  * Tests
-* Supabase anon key is rotated if exposed
-* No secrets are logged
-* Encryption happens before storage
+- Supabase anon key is rotated if exposed
+- No secrets are logged
+- Encryption happens before storage
 
 ---
 
@@ -256,9 +254,9 @@ pnpm test
 
 Tests cover:
 
-* Crypto utilities
-* Vault state handling
-* IndexedDB helpers
+- Crypto utilities
+- Vault state handling
+- IndexedDB helpers
 
 ---
 
@@ -275,21 +273,16 @@ SecureVault is **Vercel-ready**:
 
 ## 🛣 Roadmap
 
-* Cloud-encrypted sync
-* WebAuthn / biometrics
-* Browser extension
-* Password autofill
-* Export / backup vault
+- Cloud-encrypted sync
+- WebAuthn / biometrics
+- Browser extension
+- Password autofill
+- Export / backup vault
 
 ---
 
 ## 👤 Author
 
-**Built by:** *Glory Chioma Anunah*
+**Built by:** _Glory Chioma Anunah_
 **Focus:** Security-first frontend architecture
-**Philosophy:** *Privacy by design, not by policy*
-
-
-
-
-
+**Philosophy:** _Privacy by design, not by policy_
