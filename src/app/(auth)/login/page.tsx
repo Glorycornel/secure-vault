@@ -1,13 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { getSupabaseClient } from "@/lib/supabaseClient";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const sessionExpired = searchParams.get("reason") === "session_expired";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -94,6 +96,19 @@ export default function LoginPage() {
                 required
               />
             </div>
+
+            {sessionExpired && !error && (
+              <div className="flex items-center justify-between gap-3 rounded-lg bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                <span>Your session expired. Please log in again.</span>
+                <button
+                  type="button"
+                  onClick={() => router.replace("/login")}
+                  className="rounded-md border border-amber-400/40 px-2 py-1 text-[11px] text-amber-100"
+                >
+                  Sign back in
+                </button>
+              </div>
+            )}
 
             {error && (
               <p className="rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-300">

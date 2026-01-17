@@ -46,6 +46,7 @@ import {
   fetchGroupMembers,
   listMyGroups,
   inviteMemberByEmail,
+  deleteGroup,
   leaveGroup,
   removeGroupMember,
   rotateGroupKeysWithPayload,
@@ -654,6 +655,23 @@ export default function VaultPage() {
     }
   }
 
+  async function handleDeleteGroup() {
+    if (!selectedGroupId || !isGroupOwner) return;
+    const confirmed = window.confirm(
+      `Delete group "${selectedGroup?.name ?? "this group"}"? This removes all group shares.`
+    );
+    if (!confirmed) return;
+    setGroupError(null);
+    try {
+      await deleteGroup(selectedGroupId);
+      setSelectedGroupId(null);
+      setGroupMembers([]);
+      await refreshGroupsAndKeys();
+    } catch (e) {
+      setGroupError(e instanceof Error ? e.message : "Failed to delete group.");
+    }
+  }
+
   async function handleRotateGroupKey() {
     if (!selectedGroupId || !vaultAesKey) return;
     if (!isGroupOwner) return;
@@ -1125,6 +1143,12 @@ export default function VaultPage() {
                           className="w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-xs text-white"
                         >
                           Rotate group key
+                        </button>
+                        <button
+                          onClick={handleDeleteGroup}
+                          className="w-full rounded-lg border border-red-300/40 bg-red-500/10 px-3 py-2 text-xs text-red-200"
+                        >
+                          Delete group
                         </button>
                         {rotationStatus ? (
                           <p className="text-xs text-emerald-300">{rotationStatus}</p>

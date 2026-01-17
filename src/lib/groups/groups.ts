@@ -173,6 +173,12 @@ export async function leaveGroup(groupId: string) {
   if (error) throw error;
 }
 
+export async function deleteGroup(groupId: string) {
+  const supabase = getSupabaseClient();
+  const { error } = await supabase.rpc("delete_group", { _group_id: groupId });
+  if (error) throw error;
+}
+
 export async function rotateGroupKeys(params: {
   groupId: string;
   newKeyVersion: number;
