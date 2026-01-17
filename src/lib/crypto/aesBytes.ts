@@ -27,11 +27,7 @@ export async function decryptBytes(
   const iv = base64ToBytes(payload.iv);
   const ct = base64ToBytes(payload.ciphertext);
 
-  const pt = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv },
-    key,
-    toArrayBuffer(ct)
-  );
+  const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, toArrayBuffer(ct));
 
   return new Uint8Array(pt);
 }

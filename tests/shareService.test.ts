@@ -1,7 +1,9 @@
 import { shareNoteToGroup, shareNoteToUser } from "@/lib/shares/shareService";
 
 jest.mock("@/lib/crypto/aesBytes", () => ({
-  encryptBytes: jest.fn().mockResolvedValue({ ciphertext: "wrapped-ct", iv: "wrapped-iv" }),
+  encryptBytes: jest
+    .fn()
+    .mockResolvedValue({ ciphertext: "wrapped-ct", iv: "wrapped-iv" }),
 }));
 
 const rpcMock = jest.fn().mockResolvedValue({ error: null });

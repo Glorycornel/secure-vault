@@ -3,11 +3,7 @@ import React from "react";
 import TestRenderer, { act } from "react-test-renderer";
 import { useVault, VaultProvider } from "@/hooks/useVault";
 import { encryptNoteWithPerNoteKey, decryptAnyNotePayload } from "@/lib/notes/noteCrypto";
-import {
-  getDb,
-  getEncryptedNote,
-  upsertEncryptedNote,
-} from "@/lib/db/indexedDb";
+import { getDb, getEncryptedNote, upsertEncryptedNote } from "@/lib/db/indexedDb";
 import { bytesToBase64 } from "@/lib/crypto/encoding";
 
 jest.mock("@/lib/supabaseClient", () => ({
@@ -35,10 +31,7 @@ let mockVaultKey: CryptoKey | null = null;
 async function keyFromPassword(password: string) {
   const bytes = new TextEncoder().encode(password);
   const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return crypto.subtle.importKey("raw", digest, "AES-GCM", false, [
-    "encrypt",
-    "decrypt",
-  ]);
+  return crypto.subtle.importKey("raw", digest, "AES-GCM", false, ["encrypt", "decrypt"]);
 }
 
 function renderHook<T>(hook: () => T) {
@@ -85,7 +78,9 @@ describe("vault flow integration", () => {
     await resetDb();
     jest.resetAllMocks();
     jest.spyOn(console, "error").mockImplementation(() => {});
-    getOrCreateVaultSaltB64.mockResolvedValue(bytesToBase64(new Uint8Array([9, 8, 7, 6])));
+    getOrCreateVaultSaltB64.mockResolvedValue(
+      bytesToBase64(new Uint8Array([9, 8, 7, 6]))
+    );
     if (!mockVaultKey) {
       mockVaultKey = await keyFromPassword("integration-pass");
     }

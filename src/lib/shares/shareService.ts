@@ -9,7 +9,7 @@ export async function shareNoteToGroup(params: {
   groupId: string;
   permission: "read" | "write";
   groupKey: Uint8Array; // decrypted locally
-  noteKey: Uint8Array;  // per-note symmetric key
+  noteKey: Uint8Array; // per-note symmetric key
   keyVersion?: number;
 }) {
   const supabase = getSupabaseClient();

@@ -1,4 +1,7 @@
-import { fetchEncryptedNotesByIds, fetchVisibleNoteShares } from "@/lib/supabase/sharedNotes";
+import {
+  fetchEncryptedNotesByIds,
+  fetchVisibleNoteShares,
+} from "@/lib/supabase/sharedNotes";
 import { loadMyBoxKeypair } from "@/lib/supabase/profileKeys";
 import { loadMyGroupKeys } from "@/lib/groups/groupKeyLoader";
 import { decryptBytes, encryptBytes } from "@/lib/crypto/aesBytes";
@@ -18,7 +21,11 @@ import {
 function tryParsePayload(raw: string): EncryptedPayload | null {
   try {
     const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed.iv === "string" && typeof parsed.ciphertext === "string") {
+    if (
+      parsed &&
+      typeof parsed.iv === "string" &&
+      typeof parsed.ciphertext === "string"
+    ) {
       return { iv: parsed.iv, ciphertext: parsed.ciphertext };
     }
     return null;

@@ -226,7 +226,10 @@ export async function deleteEncryptedNoteKey(noteId: string) {
 export async function deleteNoteAndKey(noteId: string) {
   const db = await getDb();
   const tx = db.transaction(["notes", "note_keys"], "readwrite");
-  await Promise.all([tx.objectStore("notes").delete(noteId), tx.objectStore("note_keys").delete(noteId)]);
+  await Promise.all([
+    tx.objectStore("notes").delete(noteId),
+    tx.objectStore("note_keys").delete(noteId),
+  ]);
   await tx.done;
 }
 

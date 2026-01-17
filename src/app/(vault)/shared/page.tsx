@@ -3,7 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { listSharedEncryptedNotes, type SharedEncryptedNoteRecord } from "@/lib/db/indexedDb";
+import {
+  listSharedEncryptedNotes,
+  type SharedEncryptedNoteRecord,
+} from "@/lib/db/indexedDb";
 import { useVault } from "@/hooks/useVault";
 import { fetchGroupNamesByIds } from "@/lib/groups/groups";
 
@@ -34,7 +37,7 @@ export default function SharedNotesPage() {
     return (
       <main className="mx-auto max-w-2xl p-6">
         <h1 className="text-xl font-semibold">Shared with me</h1>
-        <p className="mt-3 text-sm text-muted-foreground">
+        <p className="text-muted-foreground mt-3 text-sm">
           Unlock your vault to view shared notes.
         </p>
         <div className="mt-6">
@@ -54,7 +57,7 @@ export default function SharedNotesPage() {
       />
       <div className="absolute inset-0 bg-black/50" />
 
-      <div className="relative z-10 mx-auto max-w-3xl px-6 pb-12 pt-8 text-white">
+      <div className="relative z-10 mx-auto max-w-3xl px-6 pt-8 pb-12 text-white">
         <header className="flex items-center justify-between gap-4">
           <Link href="/">
             <Image
@@ -66,7 +69,10 @@ export default function SharedNotesPage() {
               className="drop-shadow-[0_0_18px_rgba(168,85,247,0.6)]"
             />
           </Link>
-          <Link className="rounded-lg border border-white/20 px-3 py-1.5 text-sm" href="/vault">
+          <Link
+            className="rounded-lg border border-white/20 px-3 py-1.5 text-sm"
+            href="/vault"
+          >
             My Notes
           </Link>
         </header>

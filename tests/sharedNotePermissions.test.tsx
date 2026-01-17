@@ -60,9 +60,8 @@ describe("SharedNoteViewPage permissions", () => {
   });
 
   it("allows editing when permission is write", async () => {
-    const { getSharedEncryptedNote, upsertSharedEncryptedNote } = jest.requireMock(
-      "@/lib/db/indexedDb"
-    );
+    const { getSharedEncryptedNote, upsertSharedEncryptedNote } =
+      jest.requireMock("@/lib/db/indexedDb");
     const { updateSharedNotePayload } = jest.requireMock("@/lib/supabase/sharedNotes");
     getSharedEncryptedNote.mockResolvedValue({
       id: "note-1",

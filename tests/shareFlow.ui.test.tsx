@@ -33,7 +33,9 @@ jest.mock("@/lib/db/indexedDb", () => ({
 }));
 
 jest.mock("@/lib/notes/noteCrypto", () => ({
-  decryptAnyNotePayload: jest.fn().mockResolvedValue({ title: "Hello", body: "Shared body" }),
+  decryptAnyNotePayload: jest
+    .fn()
+    .mockResolvedValue({ title: "Hello", body: "Shared body" }),
   encryptNoteWithPerNoteKey: jest.fn().mockResolvedValue({
     payload: { iv: "iv", ciphertext: "ct" },
   }),

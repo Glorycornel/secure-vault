@@ -8,7 +8,10 @@ import {
   upsertEncryptedNoteKey,
   upsertSharedEncryptedNote,
 } from "@/lib/db/indexedDb";
-import { fetchVisibleNoteShares, fetchEncryptedNotesByIds } from "@/lib/supabase/sharedNotes";
+import {
+  fetchVisibleNoteShares,
+  fetchEncryptedNotesByIds,
+} from "@/lib/supabase/sharedNotes";
 import { loadMyBoxKeypair } from "@/lib/supabase/profileKeys";
 import { loadMyGroupKeys } from "@/lib/groups/groupKeyLoader";
 import { openSealed } from "@/lib/crypto/box";

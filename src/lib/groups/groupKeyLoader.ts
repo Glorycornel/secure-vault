@@ -21,7 +21,11 @@ export async function loadMyGroupKeys(params: {
 
   for (const row of data ?? []) {
     const sealed = b64ToU8(row.sealed_group_key);
-    const groupKey = await openSealed(sealed, params.myBoxPublicKey, params.myBoxPrivateKey);
+    const groupKey = await openSealed(
+      sealed,
+      params.myBoxPublicKey,
+      params.myBoxPrivateKey
+    );
     const existing = out.get(row.group_id);
     if (!existing || row.key_version > existing.keyVersion) {
       out.set(row.group_id, { keyBytes: groupKey, keyVersion: row.key_version });

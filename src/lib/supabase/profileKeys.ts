@@ -43,7 +43,11 @@ export async function ensureProfileKeys(params: {
   }
 
   // If it already exists, return it
-  if (profile?.box_public_key && profile?.enc_box_secret_key && profile?.enc_box_secret_key_iv) {
+  if (
+    profile?.box_public_key &&
+    profile?.enc_box_secret_key &&
+    profile?.enc_box_secret_key_iv
+  ) {
     return {
       userId,
       boxPublicKeyB64: profile.box_public_key,
@@ -137,7 +141,11 @@ export async function loadMyBoxKeypair(params: {
   }
 
   // If profile exists but fields are missing, optionally recreate
-  if (!profile.box_public_key || !profile.enc_box_secret_key || !profile.enc_box_secret_key_iv) {
+  if (
+    !profile.box_public_key ||
+    !profile.enc_box_secret_key ||
+    !profile.enc_box_secret_key_iv
+  ) {
     if (!params.autoCreateIfMissing) {
       throw new Error("Profile row is missing key fields. Recreate profile keys.");
     }

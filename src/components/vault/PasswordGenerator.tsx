@@ -188,7 +188,7 @@ export default function PasswordGenerator() {
             {lengthOpen ? (
               <div
                 ref={lengthMenuRef}
-                className="absolute left-0 top-full z-20 mt-2 w-full rounded-xl border border-white/20 bg-purple-950/80 p-1 text-sm text-white shadow-lg backdrop-blur"
+                className="absolute top-full left-0 z-20 mt-2 w-full rounded-xl border border-white/20 bg-purple-950/80 p-1 text-sm text-white shadow-lg backdrop-blur"
                 role="listbox"
                 aria-label="Password length"
               >

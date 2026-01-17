@@ -103,10 +103,7 @@ export async function fetchGroupNoteShares(groupId: string) {
 export async function fetchGroupNamesByIds(ids: string[]) {
   if (ids.length === 0) return new Map<string, string>();
   const supabase = getSupabaseClient();
-  const { data, error } = await supabase
-    .from("groups")
-    .select("id,name")
-    .in("id", ids);
+  const { data, error } = await supabase.from("groups").select("id,name").in("id", ids);
   if (error) throw error;
   const out = new Map<string, string>();
   for (const row of data ?? []) {

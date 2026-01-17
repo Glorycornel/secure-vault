@@ -32,10 +32,7 @@ let mockVaultKeyAlt: CryptoKey | null = null;
 async function keyFromPassword(password: string) {
   const bytes = new TextEncoder().encode(password);
   const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return crypto.subtle.importKey("raw", digest, "AES-GCM", false, [
-    "encrypt",
-    "decrypt",
-  ]);
+  return crypto.subtle.importKey("raw", digest, "AES-GCM", false, ["encrypt", "decrypt"]);
 }
 
 function renderHook<T>(hook: () => T) {

@@ -42,8 +42,7 @@ export default function SharedNoteViewPage() {
         setNote(plain);
         setPermission(rec.permission ?? "read");
       } catch (e: unknown) {
-        const message =
-          e instanceof Error ? e.message : "Failed to decrypt shared note.";
+        const message = e instanceof Error ? e.message : "Failed to decrypt shared note.";
         setError(message);
       }
     })();
@@ -102,7 +101,7 @@ export default function SharedNoteViewPage() {
       />
       <div className="absolute inset-0 bg-black/50" />
 
-      <div className="relative z-10 mx-auto max-w-3xl px-6 pb-12 pt-8 text-white">
+      <div className="relative z-10 mx-auto max-w-3xl px-6 pt-8 pb-12 text-white">
         <header className="flex items-center justify-between gap-4">
           <Link href="/">
             <Image
@@ -115,10 +114,16 @@ export default function SharedNoteViewPage() {
             />
           </Link>
           <div className="flex items-center gap-2">
-            <Link className="rounded-lg border border-white/20 px-3 py-1 text-sm" href="/shared">
+            <Link
+              className="rounded-lg border border-white/20 px-3 py-1 text-sm"
+              href="/shared"
+            >
               Shared notes
             </Link>
-            <Link className="rounded-lg border border-white/20 px-3 py-1 text-sm" href="/vault">
+            <Link
+              className="rounded-lg border border-white/20 px-3 py-1 text-sm"
+              href="/vault"
+            >
               My Notes
             </Link>
           </div>
@@ -167,7 +172,7 @@ export default function SharedNoteViewPage() {
             ) : (
               <>
                 <h1 className="text-xl font-semibold">{note.title}</h1>
-                <p className="whitespace-pre-wrap text-sm text-white/80">{note.body}</p>
+                <p className="text-sm whitespace-pre-wrap text-white/80">{note.body}</p>
               </>
             )}
           </div>

@@ -73,7 +73,6 @@ const IDLE_TIMEOUT_MS = 5 * 60 * 1000;
 const CLOUD_POLL_MS = 10_000;
 const CORRUPT_NOTES_KEY = "corrupt_notes_v1";
 
-
 export default function VaultPage() {
   const router = useRouter();
   const { key: vaultAesKey, isUnlocked, unlock, lock } = useVault();
@@ -91,9 +90,9 @@ export default function VaultPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [groups, setGroups] = useState<GroupSummary[]>([]);
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
-  const [groupMembers, setGroupMembers] = useState<Array<{ user_id: string; role: string }>>(
-    []
-  );
+  const [groupMembers, setGroupMembers] = useState<
+    Array<{ user_id: string; role: string }>
+  >([]);
   const [groupNameInput, setGroupNameInput] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
   const [groupError, setGroupError] = useState<string | null>(null);
@@ -142,13 +141,13 @@ export default function VaultPage() {
         if (remoteSalt) {
           setNeedsMasterSetup(false);
         } else {
-        const check = await getMeta(getVaultCheckKey(userId));
-        if (check) {
-          setNeedsMasterSetup(false);
-        } else {
-          const legacyCheck = await getMeta(LEGACY_VAULT_CHECK_KEY);
-          setNeedsMasterSetup(!legacyCheck);
-        }
+          const check = await getMeta(getVaultCheckKey(userId));
+          if (check) {
+            setNeedsMasterSetup(false);
+          } else {
+            const legacyCheck = await getMeta(LEGACY_VAULT_CHECK_KEY);
+            setNeedsMasterSetup(!legacyCheck);
+          }
         }
       } catch {
         setNeedsMasterSetup(true);
@@ -179,9 +178,7 @@ export default function VaultPage() {
       if (!vaultAesKey) return;
 
       const encrypted = await listEncryptedNotes();
-      const sorted = [...encrypted].sort((a, b) =>
-        a.updatedAt < b.updatedAt ? 1 : -1
-      );
+      const sorted = [...encrypted].sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1));
 
       const decrypted: DecryptedNote[] = [];
 
@@ -192,7 +189,9 @@ export default function VaultPage() {
           if (raw) {
             const parsed = JSON.parse(raw);
             if (Array.isArray(parsed)) {
-              corruptNotesRef.current = new Set(parsed.filter((id) => typeof id === "string"));
+              corruptNotesRef.current = new Set(
+                parsed.filter((id) => typeof id === "string")
+              );
               return corruptNotesRef.current;
             }
           }
@@ -682,14 +681,17 @@ export default function VaultPage() {
           }
 
           const now = new Date().toISOString();
-          const { payload, encryptedNoteKey, noteKeyBytes: newNoteKeyBytes } =
-            await encryptNoteWithPerNoteKey({
-              noteId,
-              plain: { title: note.title, body: note.body },
-              vaultAesKey,
-              createdAt: note.createdAt,
-              updatedAt: now,
-            });
+          const {
+            payload,
+            encryptedNoteKey,
+            noteKeyBytes: newNoteKeyBytes,
+          } = await encryptNoteWithPerNoteKey({
+            noteId,
+            plain: { title: note.title, body: note.body },
+            vaultAesKey,
+            createdAt: note.createdAt,
+            updatedAt: now,
+          });
 
           await upsertEncryptedNote({
             id: noteId,
@@ -740,7 +742,11 @@ export default function VaultPage() {
     }
   }
 
-  async function shareNoteWithGroup(noteId: string, groupId: string, permission: "read" | "write") {
+  async function shareNoteWithGroup(
+    noteId: string,
+    groupId: string,
+    permission: "read" | "write"
+  ) {
     if (!vaultAesKey) return;
     const groupEntry = groupKeys.get(groupId);
     if (!groupEntry) {
@@ -753,14 +759,17 @@ export default function VaultPage() {
       if (!note) throw new Error("Note not found locally.");
 
       const now = new Date().toISOString();
-      const { payload, encryptedNoteKey, noteKeyBytes: newNoteKeyBytes } =
-        await encryptNoteWithPerNoteKey({
-          noteId,
-          plain: { title: note.title, body: note.body },
-          vaultAesKey,
-          createdAt: note.createdAt,
-          updatedAt: now,
-        });
+      const {
+        payload,
+        encryptedNoteKey,
+        noteKeyBytes: newNoteKeyBytes,
+      } = await encryptNoteWithPerNoteKey({
+        noteId,
+        plain: { title: note.title, body: note.body },
+        vaultAesKey,
+        createdAt: note.createdAt,
+        updatedAt: now,
+      });
 
       await upsertEncryptedNote({
         id: noteId,
@@ -809,14 +818,17 @@ export default function VaultPage() {
       if (!note) throw new Error("Note not found locally.");
 
       const now = new Date().toISOString();
-      const { payload, encryptedNoteKey, noteKeyBytes: newNoteKeyBytes } =
-        await encryptNoteWithPerNoteKey({
-          noteId,
-          plain: { title: note.title, body: note.body },
-          vaultAesKey,
-          createdAt: note.createdAt,
-          updatedAt: now,
-        });
+      const {
+        payload,
+        encryptedNoteKey,
+        noteKeyBytes: newNoteKeyBytes,
+      } = await encryptNoteWithPerNoteKey({
+        noteId,
+        plain: { title: note.title, body: note.body },
+        vaultAesKey,
+        createdAt: note.createdAt,
+        updatedAt: now,
+      });
 
       await upsertEncryptedNote({
         id: noteId,
@@ -926,7 +938,9 @@ export default function VaultPage() {
                 type="password"
                 value={masterPassword}
                 onChange={(e) => setMasterPassword(e.target.value)}
-                placeholder={needsMasterSetup ? "Create master password" : "Master password"}
+                placeholder={
+                  needsMasterSetup ? "Create master password" : "Master password"
+                }
                 required
                 minLength={8}
                 autoComplete="new-password"
@@ -1060,13 +1074,18 @@ export default function VaultPage() {
                 {selectedGroup ? (
                   <div className="mt-4 space-y-3 rounded-xl border border-white/10 bg-black/20 p-3">
                     <div className="text-xs text-white/70">Group details</div>
-                    <div className="text-sm font-semibold text-white">{selectedGroup.name}</div>
+                    <div className="text-sm font-semibold text-white">
+                      {selectedGroup.name}
+                    </div>
 
                     <div>
                       <div className="text-xs text-white/60">Members</div>
                       <ul className="mt-2 space-y-2">
                         {groupMembers.map((member) => (
-                          <li key={member.user_id} className="flex items-center justify-between">
+                          <li
+                            key={member.user_id}
+                            className="flex items-center justify-between"
+                          >
                             <div className="text-xs text-white/70">
                               {member.user_id === myUserId ? "You" : member.user_id}
                             </div>
@@ -1324,8 +1343,9 @@ function NoteEditor({
                     aria-expanded={groupOpen}
                   >
                     <span>
-                      {groups.find((group) => group.id === (shareGroupId || groups[0]?.id))
-                        ?.name ?? "Select group"}
+                      {groups.find(
+                        (group) => group.id === (shareGroupId || groups[0]?.id)
+                      )?.name ?? "Select group"}
                     </span>
                     <span className="text-white/60" aria-hidden="true">
                       ▾
@@ -1333,7 +1353,7 @@ function NoteEditor({
                   </button>
                   {groupOpen ? (
                     <div
-                      className="absolute left-0 top-full z-20 mt-2 w-full rounded-xl border border-white/20 bg-purple-950/80 p-1 text-xs text-white shadow-lg backdrop-blur"
+                      className="absolute top-full left-0 z-20 mt-2 w-full rounded-xl border border-white/20 bg-purple-950/80 p-1 text-xs text-white shadow-lg backdrop-blur"
                       role="listbox"
                       aria-label="Share group"
                     >
@@ -1372,7 +1392,7 @@ function NoteEditor({
                   </button>
                   {permissionOpen ? (
                     <div
-                      className="absolute left-0 top-full z-20 mt-2 w-full min-w-[140px] rounded-xl border border-white/20 bg-purple-950/80 p-1 text-xs text-white shadow-lg backdrop-blur"
+                      className="absolute top-full left-0 z-20 mt-2 w-full min-w-[140px] rounded-xl border border-white/20 bg-purple-950/80 p-1 text-xs text-white shadow-lg backdrop-blur"
                       role="listbox"
                       aria-label="Share permission"
                     >
@@ -1415,7 +1435,9 @@ function NoteEditor({
                 </button>
               </div>
               {shareError ? <p className="text-xs text-red-300">{shareError}</p> : null}
-              {shareSuccess ? <p className="text-xs text-emerald-300">{shareSuccess}</p> : null}
+              {shareSuccess ? (
+                <p className="text-xs text-emerald-300">{shareSuccess}</p>
+              ) : null}
               <div className="mt-4 border-t border-white/10 pt-4">
                 <div className="text-xs text-white/70">Share with user (email)</div>
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -1434,7 +1456,9 @@ function NoteEditor({
                     {shareUserLoading ? "Sharing…" : "Share to user"}
                   </button>
                 </div>
-                {shareUserError ? <p className="mt-2 text-xs text-red-300">{shareUserError}</p> : null}
+                {shareUserError ? (
+                  <p className="mt-2 text-xs text-red-300">{shareUserError}</p>
+                ) : null}
                 {shareUserSuccess ? (
                   <p className="mt-2 text-xs text-emerald-300">{shareUserSuccess}</p>
                 ) : null}

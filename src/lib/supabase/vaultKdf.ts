@@ -24,7 +24,8 @@ export async function getOrCreateVaultSaltB64(params?: {
   // Create if missing (prefer legacy local salt if provided)
   const preferredSalt = params?.preferredSaltB64;
   const saltB64 =
-    preferredSalt ?? btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
+    preferredSalt ??
+    btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
 
   const { error: insErr } = await supabase.from("vault_kdf").insert({ salt: saltB64 });
   if (insErr) throw insErr;
