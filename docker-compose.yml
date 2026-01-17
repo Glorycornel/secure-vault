@@ -10,3 +10,6 @@ services:
     environment:
       NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      NEXT_DISABLE_IMAGE_OPTIMIZATION: "1"
+    volumes:
+      - ./.next:/app/.next

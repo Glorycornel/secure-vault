@@ -29,6 +29,7 @@ export default function HomePage() {
               height={140}
               priority
               className="h-auto w-[200px] drop-shadow-[0_0_25px_rgba(168,85,247,0.6)] sm:w-[260px] md:w-[340px] lg:w-[420px]"
+              style={{ height: "auto" }}
             />
           </Link>
         </header>

@@ -11,6 +11,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: supabase/setup-cli@v1
+
       - uses: pnpm/action-setup@v4
         with:
           version: 9
@@ -33,6 +35,9 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+      - name: Supabase RLS tests
+        run: supabase db test
 
       - name: Build
         run: pnpm build

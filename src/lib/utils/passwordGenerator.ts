@@ -11,10 +11,22 @@ const UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const NUM = "0123456789";
 const SYM = "!@#$%^&*()-_=+[]{};:,.<>?/|~";
 
-function pickRandomChar(chars: string) {
+function randomIndex(maxExclusive: number) {
+  if (maxExclusive <= 0) {
+    throw new Error("Invalid random range.");
+  }
   const arr = new Uint32Array(1);
-  crypto.getRandomValues(arr);
-  return chars[arr[0] % chars.length];
+  const max = 0xffffffff;
+  const limit = Math.floor((max + 1) / maxExclusive) * maxExclusive - 1;
+  while (true) {
+    crypto.getRandomValues(arr);
+    const value = arr[0];
+    if (value <= limit) return value % maxExclusive;
+  }
+}
+
+function pickRandomChar(chars: string) {
+  return chars[randomIndex(chars.length)];
 }
 
 export function generatePassword(opts: PasswordOptions) {
@@ -42,9 +54,7 @@ export function generatePassword(opts: PasswordOptions) {
 
   // Shuffle (Fisher-Yates with crypto randomness)
   for (let i = result.length - 1; i > 0; i--) {
-    const arr = new Uint32Array(1);
-    crypto.getRandomValues(arr);
-    const j = arr[0] % (i + 1);
+    const j = randomIndex(i + 1);
     [result[i], result[j]] = [result[j], result[i]];
   }
 

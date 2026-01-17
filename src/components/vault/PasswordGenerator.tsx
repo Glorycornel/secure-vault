@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { generatePassword, type PasswordOptions } from "@/lib/utils/passwordGenerator";
 
 type Strength = {
@@ -10,44 +10,73 @@ type Strength = {
 };
 
 function strengthOf(password: string, opts: PasswordOptions): Strength {
-  // Strength scoring: keep it simple + predictable for UX
-  let score = 0;
-
-  // length contribution
-  if (password.length >= 12) score++;
-  if (password.length >= 16) score++;
-  if (password.length >= 20) score++;
-
-  // variety contribution (based on what user allowed + actual content)
+  const meetsLength = password.length >= 8;
   const hasLower = /[a-z]/.test(password);
   const hasUpper = /[A-Z]/.test(password);
   const hasNumber = /\d/.test(password);
   const hasSymbol = /[^A-Za-z0-9]/.test(password);
 
-  if (opts.lower && hasLower) score++;
-  if (opts.upper && hasUpper) score++;
-  if (opts.numbers && hasNumber) score++;
-  if (opts.symbols && hasSymbol) score++;
+  const typeCount =
+    (opts.lower && hasLower ? 1 : 0) +
+    (opts.upper && hasUpper ? 1 : 0) +
+    (opts.numbers && hasNumber ? 1 : 0) +
+    (opts.symbols && hasSymbol ? 1 : 0);
 
-  // Cap and normalize
-  if (score <= 3) {
+  if (meetsLength && typeCount === 4) {
     return {
-      label: "Weak",
-      level: 1,
-      hint: "Increase length and add more character types.",
+      label: "Strong",
+      level: 3,
+      hint: "All character types selected with 8+ characters.",
     };
   }
-  if (score <= 6) {
+  if (meetsLength && typeCount >= 2) {
     return {
       label: "Medium",
       level: 2,
-      hint: "Good. Consider 16+ chars and symbols for stronger passwords.",
+      hint: "Good. Add all character types for strong passwords.",
     };
   }
   return {
-    label: "Strong",
-    level: 3,
-    hint: "Great strength for most use-cases.",
+    label: "Weak",
+    level: 1,
+    hint: "Use 8+ characters and more character types.",
+  };
+}
+
+function strengthFromOptions(opts: PasswordOptions): Strength {
+  if (!opts.lower && !opts.upper && !opts.numbers && !opts.symbols) {
+    return {
+      label: "Weak",
+      level: 1,
+      hint: "Select at least one character type.",
+    };
+  }
+
+  const meetsLength = opts.length >= 8;
+  const typeCount =
+    (opts.lower ? 1 : 0) +
+    (opts.upper ? 1 : 0) +
+    (opts.numbers ? 1 : 0) +
+    (opts.symbols ? 1 : 0);
+
+  if (meetsLength && typeCount === 4) {
+    return {
+      label: "Strong",
+      level: 3,
+      hint: "All character types selected with 8+ characters.",
+    };
+  }
+  if (meetsLength && typeCount >= 2) {
+    return {
+      label: "Medium",
+      level: 2,
+      hint: "Estimated strength. Add all character types for strong.",
+    };
+  }
+  return {
+    label: "Weak",
+    level: 1,
+    hint: "Estimated strength. Use 8+ characters and more types.",
   };
 }
 
@@ -63,24 +92,46 @@ export default function PasswordGenerator() {
   const [value, setValue] = useState<string>("");
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lengthOpen, setLengthOpen] = useState(false);
+  const lengthButtonRef = useRef<HTMLButtonElement | null>(null);
+  const lengthMenuRef = useRef<HTMLDivElement | null>(null);
 
   const canGenerate = useMemo(
     () => opts.lower || opts.upper || opts.numbers || opts.symbols,
     [opts]
   );
 
-  const lengthOptions = useMemo(() => [8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 64], []);
+  const lengthOptions = useMemo(() => [6, 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 64], []);
 
   const strength = useMemo<Strength>(() => {
     if (!value) {
-      return {
-        label: "Weak",
-        level: 1,
-        hint: "Generate a password to see strength.",
-      };
+      return strengthFromOptions(opts);
     }
     return strengthOf(value, opts);
   }, [value, opts]);
+
+  useEffect(() => {
+    if (!lengthOpen) return;
+
+    function onDocClick(event: MouseEvent) {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (lengthButtonRef.current?.contains(target)) return;
+      if (lengthMenuRef.current?.contains(target)) return;
+      setLengthOpen(false);
+    }
+
+    function onDocKey(event: KeyboardEvent) {
+      if (event.key === "Escape") setLengthOpen(false);
+    }
+
+    document.addEventListener("mousedown", onDocClick);
+    document.addEventListener("keydown", onDocKey);
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onDocKey);
+    };
+  }, [lengthOpen]);
 
   function update<K extends keyof PasswordOptions>(key: K, val: PasswordOptions[K]) {
     setOpts((p) => ({ ...p, [key]: val }));
@@ -120,17 +171,47 @@ export default function PasswordGenerator() {
         {/* Length dropdown */}
         <div className="flex items-center gap-3">
           <label className="w-24 text-sm text-white/80">Length</label>
-          <select
-            className="w-full rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-sm text-white outline-none"
-            value={opts.length}
-            onChange={(e) => update("length", Number(e.target.value))}
-          >
-            {lengthOptions.map((n) => (
-              <option key={n} value={n} className="text-black">
-                {n} characters
-              </option>
-            ))}
-          </select>
+          <div className="relative w-full">
+            <button
+              ref={lengthButtonRef}
+              type="button"
+              className="flex w-full items-center justify-between rounded-xl border border-white/20 bg-purple-500/15 px-3 py-2 text-sm text-white outline-none"
+              onClick={() => setLengthOpen((open) => !open)}
+              aria-haspopup="listbox"
+              aria-expanded={lengthOpen}
+            >
+              <span>{opts.length} characters</span>
+              <span className="text-white/60" aria-hidden="true">
+                ▾
+              </span>
+            </button>
+            {lengthOpen ? (
+              <div
+                ref={lengthMenuRef}
+                className="absolute left-0 top-full z-20 mt-2 w-full rounded-xl border border-white/20 bg-purple-950/80 p-1 text-sm text-white shadow-lg backdrop-blur"
+                role="listbox"
+                aria-label="Password length"
+              >
+                {lengthOptions.map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    role="option"
+                    aria-selected={opts.length === n}
+                    className={`flex w-full items-center rounded-lg px-3 py-2 text-left hover:bg-white/10 ${
+                      opts.length === n ? "bg-white/10 text-white" : "text-white/80"
+                    }`}
+                    onClick={() => {
+                      update("length", n);
+                      setLengthOpen(false);
+                    }}
+                  >
+                    {n} characters
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
         </div>
 
         {/* Options */}

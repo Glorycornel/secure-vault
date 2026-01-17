@@ -94,7 +94,7 @@ Stored data looks like:
 }
 ```
 
-➡️ **No readable titles or content are ever stored**
+➡️ **Note titles are stored as plaintext metadata for listing; note bodies remain encrypted**
 
 ---
 
@@ -182,6 +182,14 @@ This is intentional and aligns with:
 git clone https://github.com/your-username/secure-vault.git
 cd secure-vault
 ```
+
+---
+
+## 🧩 Supabase Policies & Schema
+
+Supabase RLS policies, schema constraints, and RPCs for sharing live in `supabase/README.md`
+and `supabase/migrations/`. Apply those migrations to enforce group membership rules,
+share access, and key rotation flows.
 
 ---
 

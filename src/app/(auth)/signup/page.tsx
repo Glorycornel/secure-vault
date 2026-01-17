@@ -54,6 +54,7 @@ export default function SignupPage() {
               height={80}
               priority
               className="h-auto w-[220px] drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]"
+              style={{ height: "auto" }}
             />
           </div>
 

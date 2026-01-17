@@ -1,2 +1,1 @@
-// Add custom jest matchers or global test setup here.
-// Example: import "@testing-library/jest-dom";
+// Add custom jest matchers or per-test setup here.
