@@ -37,7 +37,9 @@ jobs:
         run: pnpm test
 
       - name: Supabase RLS tests
-        run: supabase db test
+        run: |
+          supabase start -x studio,vector
+          supabase db test
 
       - name: Build
         run: pnpm build
