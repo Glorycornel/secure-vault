@@ -455,9 +455,6 @@ export default function VaultPage() {
               myBoxPrivateKey: myBox.privateKey,
             });
             setGroupKeys(keys);
-            if (keys.size === 0) {
-              setGroupError("Group keys unavailable. Group sharing is disabled.");
-            }
           } catch (e) {
             devWarn("Failed to load group keys.", e);
             setGroupKeys(new Map());
@@ -862,9 +859,25 @@ export default function VaultPage() {
     permission: "read" | "write"
   ) {
     if (!vaultAesKey) return;
-    const groupEntry = groupKeys.get(groupId);
+    let groupEntry = groupKeys.get(groupId);
     if (!groupEntry) {
-      throw new Error("Group key not loaded.");
+      try {
+        const myBox = await loadMyBoxKeypair({
+          vaultAesKey,
+          autoCreateIfMissing: true,
+        });
+        const keys = await loadMyGroupKeys({
+          myBoxPublicKey: myBox.publicKey,
+          myBoxPrivateKey: myBox.privateKey,
+        });
+        setGroupKeys(keys);
+        groupEntry = keys.get(groupId);
+      } catch (e) {
+        devWarn("Failed to reload group keys for share.", e);
+      }
+    }
+    if (!groupEntry) {
+      throw new Error("Group key not loaded. Reopen the group panel and retry.");
     }
 
     let noteKeyBytes = await loadNoteKeyBytes({ noteId, vaultAesKey });
