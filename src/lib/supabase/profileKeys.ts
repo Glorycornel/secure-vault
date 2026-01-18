@@ -7,6 +7,12 @@ type EncBytesPayload = {
   iv: string;
 };
 
+let ensureProfileKeysInFlight: Promise<{
+  userId: string;
+  boxPublicKeyB64: string;
+  encPriv: EncBytesPayload;
+}> | null = null;
+
 function errToString(e: unknown) {
   if (!e) return "Unknown error";
   if (typeof e === "string") return e;
@@ -23,72 +29,82 @@ export async function ensureProfileKeys(params: {
   email?: string;
   displayName?: string;
 }) {
-  const supabase = getSupabaseClient();
+  if (ensureProfileKeysInFlight) return ensureProfileKeysInFlight;
+  ensureProfileKeysInFlight = (async () => {
+    const supabase = getSupabaseClient();
 
-  const { data: authData, error: authErr } = await supabase.auth.getUser();
-  if (authErr) throw authErr;
+    const { data: authData, error: authErr } = await supabase.auth.getUser();
+    if (authErr) throw authErr;
 
-  const userId = authData.user?.id;
-  if (!userId) throw new Error("Not authenticated");
+    const userId = authData.user?.id;
+    if (!userId) throw new Error("Not authenticated");
 
-  // Try fetch existing profile
-  const { data: profile, error } = await supabase
-    .from("profiles")
-    .select("user_id, box_public_key, enc_box_secret_key, enc_box_secret_key_iv")
-    .eq("user_id", userId)
-    .maybeSingle();
+    // Try fetch existing profile
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("user_id, box_public_key, enc_box_secret_key, enc_box_secret_key_iv")
+      .eq("user_id", userId)
+      .maybeSingle();
 
-  if (error) {
-    throw new Error(`[ensureProfileKeys] profiles select failed: ${errToString(error)}`);
-  }
+    if (error) {
+      throw new Error(
+        `[ensureProfileKeys] profiles select failed: ${errToString(error)}`
+      );
+    }
 
-  // If it already exists, return it
-  if (
-    profile?.box_public_key &&
-    profile?.enc_box_secret_key &&
-    profile?.enc_box_secret_key_iv
-  ) {
+    // If it already exists, return it
+    if (
+      profile?.box_public_key &&
+      profile?.enc_box_secret_key &&
+      profile?.enc_box_secret_key_iv
+    ) {
+      return {
+        userId,
+        boxPublicKeyB64: profile.box_public_key,
+        encPriv: {
+          ciphertext: profile.enc_box_secret_key,
+          iv: profile.enc_box_secret_key_iv,
+        } satisfies EncBytesPayload,
+      };
+    }
+
+    // Create new keypair
+    const { publicKey, privateKey } = await genBoxKeypair();
+
+    // Encrypt private key under vaultAesKey
+    const enc = await encryptBytes(params.vaultAesKey, privateKey);
+
+    const upsertRow = {
+      user_id: userId,
+      email: params.email ?? null,
+      display_name: params.displayName ?? null,
+      box_public_key: u8ToB64(publicKey),
+      enc_box_secret_key: enc.ciphertext,
+      enc_box_secret_key_iv: enc.iv,
+    };
+
+    const { error: upErr } = await supabase
+      .from("profiles")
+      .upsert(upsertRow, { onConflict: "user_id" });
+
+    if (upErr) {
+      throw new Error(
+        `[ensureProfileKeys] profiles upsert failed: ${errToString(upErr)}`
+      );
+    }
+
     return {
       userId,
-      boxPublicKeyB64: profile.box_public_key,
+      boxPublicKeyB64: upsertRow.box_public_key,
       encPriv: {
-        ciphertext: profile.enc_box_secret_key,
-        iv: profile.enc_box_secret_key_iv,
+        ciphertext: upsertRow.enc_box_secret_key,
+        iv: upsertRow.enc_box_secret_key_iv,
       } satisfies EncBytesPayload,
     };
-  }
-
-  // Create new keypair
-  const { publicKey, privateKey } = await genBoxKeypair();
-
-  // Encrypt private key under vaultAesKey
-  const enc = await encryptBytes(params.vaultAesKey, privateKey);
-
-  const upsertRow = {
-    user_id: userId,
-    email: params.email ?? null,
-    display_name: params.displayName ?? null,
-    box_public_key: u8ToB64(publicKey),
-    enc_box_secret_key: enc.ciphertext,
-    enc_box_secret_key_iv: enc.iv,
-  };
-
-  const { error: upErr } = await supabase
-    .from("profiles")
-    .upsert(upsertRow, { onConflict: "user_id" });
-
-  if (upErr) {
-    throw new Error(`[ensureProfileKeys] profiles upsert failed: ${errToString(upErr)}`);
-  }
-
-  return {
-    userId,
-    boxPublicKeyB64: upsertRow.box_public_key,
-    encPriv: {
-      ciphertext: upsertRow.enc_box_secret_key,
-      iv: upsertRow.enc_box_secret_key_iv,
-    } satisfies EncBytesPayload,
-  };
+  })().finally(() => {
+    ensureProfileKeysInFlight = null;
+  });
+  return ensureProfileKeysInFlight;
 }
 
 /**
