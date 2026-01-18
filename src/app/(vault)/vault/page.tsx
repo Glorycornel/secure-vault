@@ -54,7 +54,7 @@ import {
 } from "@/lib/groups/groups";
 import { loadMyGroupKeys } from "@/lib/groups/groupKeyLoader";
 import { lookupProfileByEmail } from "@/lib/supabase/profiles";
-import { b64ToU8 } from "@/lib/crypto/box";
+import { b64ToU8, u8ToB64 } from "@/lib/crypto/box";
 import { ensureProfileKeys, loadMyBoxKeypair } from "@/lib/supabase/profileKeys";
 import { getVaultCheckKey, LEGACY_VAULT_CHECK_KEY } from "@/lib/vault/metaKeys";
 
@@ -648,10 +648,13 @@ export default function VaultPage() {
   }
 
   async function handleCreateGroup() {
-    if (!groupNameInput.trim() || !boxPublicKeyB64) return;
+    if (!groupNameInput.trim() || !vaultAesKey) return;
     setGroupError(null);
     try {
-      const res = await createGroup(groupNameInput.trim(), boxPublicKeyB64);
+      const myBox = await loadMyBoxKeypair({ vaultAesKey, autoCreateIfMissing: true });
+      const ownerBoxPublicKeyB64 = u8ToB64(myBox.publicKey);
+      setBoxPublicKeyB64(ownerBoxPublicKeyB64);
+      const res = await createGroup(groupNameInput.trim(), ownerBoxPublicKeyB64);
       setGroupNameInput("");
       await refreshGroupsAndKeys();
       setSelectedGroupId(res.groupId);
