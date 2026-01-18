@@ -55,13 +55,33 @@ export type GroupSummary = {
 
 export async function listMyGroups(): Promise<GroupSummary[]> {
   const supabase = getSupabaseClient();
+
+  const { data: u, error: uErr } = await supabase.auth.getUser();
+  if (uErr) throw uErr;
+  const userId = u.user?.id;
+  if (!userId) return []; // not signed in yet
+
   const { data, error } = await supabase
-    .from("groups")
-    .select("id,name,owner_id")
-    .order("name", { ascending: true });
-  if (error) throw error;
-  return (data ?? []) as GroupSummary[];
+    .from("group_members")
+    .select("groups!group_members_group_fk ( id, name, owner_id )")
+    .eq("user_id", userId);
+
+  if (error) {
+    const details = error.details ? ` ${error.details}` : "";
+    throw new Error(`[listMyGroups] ${error.message}${details}`);
+  }
+
+  type GroupMemberRow = { groups: GroupSummary | GroupSummary[] | null };
+  const groups = ((data ?? []) as GroupMemberRow[])
+    .flatMap((row) => (Array.isArray(row.groups) ? row.groups : [row.groups]))
+    .filter((group): group is GroupSummary => Boolean(group));
+
+  // optional sort
+  groups.sort((a, b) => a.name.localeCompare(b.name));
+
+  return groups as GroupSummary[];
 }
+
 
 export async function fetchGroupMembers(groupId: string) {
   const supabase = getSupabaseClient();
