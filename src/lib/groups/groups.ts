@@ -82,7 +82,6 @@ export async function listMyGroups(): Promise<GroupSummary[]> {
   return groups as GroupSummary[];
 }
 
-
 export async function fetchGroupMembers(groupId: string) {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase

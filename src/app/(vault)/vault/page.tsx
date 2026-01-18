@@ -135,8 +135,7 @@ export default function VaultPage() {
   const selectedOwnedGroups = useMemo(
     () =>
       groups.filter(
-        (group) =>
-          deleteGroupSelection.includes(group.id) && group.owner_id === myUserId
+        (group) => deleteGroupSelection.includes(group.id) && group.owner_id === myUserId
       ),
     [groups, deleteGroupSelection, myUserId]
   );
@@ -1632,7 +1631,9 @@ function NoteEditor({
             </button>
           </div>
           {shareError ? <p className="text-xs text-red-300">{shareError}</p> : null}
-          {shareSuccess ? <p className="text-xs text-emerald-300">{shareSuccess}</p> : null}
+          {shareSuccess ? (
+            <p className="text-xs text-emerald-300">{shareSuccess}</p>
+          ) : null}
           <div className="mt-4 border-t border-white/10 pt-4">
             <div className="text-xs text-white/70">Share with user (email)</div>
             <div className="mt-2 flex flex-wrap gap-2">
