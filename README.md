@@ -220,6 +220,21 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 pnpm dev
 ```
 
+---
+
+## ⏰ Supabase Keep-Alive (Optional)
+
+If your Supabase project pauses after inactivity, this repo includes a daily keep-alive ping:
+
+- Script: `scripts/supabase-keepalive.mjs`
+- Command: `pnpm supabase:keepalive`
+- GitHub workflow: `.github/workflows/supabase-keepalive.yml` (runs daily + manual trigger)
+
+To enable scheduled keep-alive in GitHub Actions, add these repository secrets:
+
+- `SUPABASE_URL` (e.g. `https://your-project-ref.supabase.co`)
+- `SUPABASE_ANON_KEY` (project anon key)
+
 Visit:
 👉 **[http://localhost:3000](http://localhost:3000)**
 

@@ -12,7 +12,8 @@
     "format": "prettier --ignore-path .prettierignore --write .",
     "format:check": "prettier --ignore-path .prettierignore --check .",
     "prepare": "husky",
-    "supabase:push": "supabase db push"
+    "supabase:push": "supabase db push",
+    "supabase:keepalive": "node scripts/supabase-keepalive.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
