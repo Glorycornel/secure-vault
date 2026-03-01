@@ -3,7 +3,11 @@ import Link from "next/link";
 export function AuthModal({ children }: { children: React.ReactNode }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-      <Link href="/" aria-label="Close auth modal" className="absolute inset-0 bg-black/55 backdrop-blur-sm" />
+      <Link
+        href="/"
+        aria-label="Close auth modal"
+        className="absolute inset-0 bg-black/55 backdrop-blur-sm"
+      />
       <div className="relative z-10 w-full max-w-md">
         <Link
           href="/"

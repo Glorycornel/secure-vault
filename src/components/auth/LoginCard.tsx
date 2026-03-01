@@ -51,7 +51,9 @@ export function LoginCard() {
       </div>
 
       <h1 className="text-center text-2xl font-semibold text-white">Welcome back</h1>
-      <p className="mt-2 text-center text-sm text-white/70">Log in to access your SecureVault</p>
+      <p className="mt-2 text-center text-sm text-white/70">
+        Log in to access your SecureVault
+      </p>
 
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <div className="space-y-1">
@@ -93,7 +95,11 @@ export function LoginCard() {
           </div>
         )}
 
-        {error && <p className="rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-300">{error}</p>}
+        {error && (
+          <p className="rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-300">
+            {error}
+          </p>
+        )}
 
         <button
           type="submit"
@@ -106,7 +112,10 @@ export function LoginCard() {
 
       <p className="mt-6 text-center text-sm text-white/70">
         New here?{" "}
-        <Link href="/signup" className="font-medium text-purple-300 hover:text-purple-200">
+        <Link
+          href="/signup"
+          className="font-medium text-purple-300 hover:text-purple-200"
+        >
           Create an account
         </Link>
       </p>

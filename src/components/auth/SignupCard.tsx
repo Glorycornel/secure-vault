@@ -45,7 +45,9 @@ export function SignupCard() {
         />
       </div>
 
-      <h1 className="text-center text-2xl font-semibold text-white">Create your account</h1>
+      <h1 className="text-center text-2xl font-semibold text-white">
+        Create your account
+      </h1>
       <p className="mt-2 text-center text-sm text-white/70">
         Start securing your notes and passwords in minutes
       </p>
@@ -81,7 +83,11 @@ export function SignupCard() {
           </p>
         </div>
 
-        {error && <p className="rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-300">{error}</p>}
+        {error && (
+          <p className="rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-300">
+            {error}
+          </p>
+        )}
 
         <button
           type="submit"
