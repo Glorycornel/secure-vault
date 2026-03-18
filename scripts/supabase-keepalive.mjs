@@ -34,8 +34,24 @@ try {
     signal: controller.signal,
   });
 
+  if (res.status === 401 || res.status === 403) {
+    const body = await res.text();
+    console.error(
+      `Supabase keep-alive rejected credentials with ${res.status}: ${body.slice(0, 300)}`
+    );
+    process.exit(1);
+  }
+
+  if (res.status === 540) {
+    const body = await res.text();
+    console.error(
+      `Supabase keep-alive hit a paused project (${res.status}): ${body.slice(0, 300)}`
+    );
+    process.exit(1);
+  }
+
   // The endpoint may return 200/404 depending on API configuration.
-  // Any non-5xx response confirms the project responded.
+  // Any other non-5xx response confirms the project responded.
   if (res.status >= 500) {
     const body = await res.text();
     console.error(`Supabase keep-alive failed with ${res.status}: ${body.slice(0, 300)}`);

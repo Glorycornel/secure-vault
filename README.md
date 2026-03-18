@@ -224,7 +224,7 @@ pnpm dev
 
 ## ⏰ Supabase Keep-Alive (Optional)
 
-If your Supabase project pauses after inactivity, this repo includes a daily keep-alive ping:
+If you want a best-effort daily activity check for a Supabase free-tier project, this repo includes a once-daily keep-alive ping:
 
 - Script: `scripts/supabase-keepalive.mjs`
 - Command: `pnpm supabase:keepalive`
@@ -234,6 +234,12 @@ To enable scheduled keep-alive in GitHub Actions, add these repository secrets:
 
 - `SUPABASE_URL` (e.g. `https://your-project-ref.supabase.co`)
 - `SUPABASE_ANON_KEY` (project anon key)
+
+Notes:
+
+- The workflow is intentionally once daily.
+- This is best-effort only; it does not guarantee a free-tier project will never be paused for inactivity.
+- If the project is already paused, the script will fail with a paused-project message until you resume it in Supabase.
 
 Visit:
 👉 **[http://localhost:3000](http://localhost:3000)**
