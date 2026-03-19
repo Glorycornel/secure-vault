@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export default function SignupPage() {
   return (
-    <main className="relative min-h-screen w-full overflow-hidden">
+    <main className="relative min-h-screen w-full overflow-y-auto">
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: "url('/images/background.png')" }}
@@ -18,7 +18,7 @@ export default function SignupPage() {
           <span>Back home</span>
         </Link>
       </div>
-      <div className="relative z-10 flex min-h-screen items-center justify-center px-6">
+      <div className="relative z-10 flex min-h-[calc(100vh-4.5rem)] items-start justify-center px-6 pt-6 pb-8 sm:min-h-screen sm:items-center sm:pt-0">
         <SignupCard />
       </div>
     </main>
