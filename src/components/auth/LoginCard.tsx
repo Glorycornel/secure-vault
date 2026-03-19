@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { redirectTo } from "@/lib/navigation";
 import { getSupabaseClient } from "@/lib/supabaseClient";
 
 function errorToMessage(error: unknown, fallback: string) {
@@ -86,7 +87,7 @@ export function LoginCard() {
         return;
       }
 
-      window.location.assign("/vault");
+      redirectTo("/vault");
     } catch (error) {
       setError(errorToMessage(error, "Unable to log in right now. Please try again."));
     } finally {
