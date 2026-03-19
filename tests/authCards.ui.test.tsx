@@ -3,12 +3,12 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { LoginCard } from "@/components/auth/LoginCard";
 import { SignupCard } from "@/components/auth/SignupCard";
 
-const pushMock = jest.fn();
+const assignMock = jest.fn();
 const signInWithPasswordMock = jest.fn();
 const signUpMock = jest.fn();
 
 jest.mock("next/navigation", () => ({
-  useRouter: () => ({ push: pushMock, replace: jest.fn() }),
+  useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
   useSearchParams: () => new URLSearchParams(),
 }));
 
@@ -23,9 +23,14 @@ jest.mock("@/lib/supabaseClient", () => ({
 
 describe("auth cards", () => {
   beforeEach(() => {
-    pushMock.mockReset();
+    assignMock.mockReset();
     signInWithPasswordMock.mockReset();
     signUpMock.mockReset();
+
+    Object.defineProperty(window, "location", {
+      configurable: true,
+      value: { assign: assignMock },
+    });
   });
 
   it("shows a login error and clears loading when sign-in throws", async () => {
@@ -47,7 +52,7 @@ describe("auth cards", () => {
         screen.getByRole("button", { name: "Log in" }).hasAttribute("disabled")
       ).toBe(false)
     );
-    expect(pushMock).not.toHaveBeenCalled();
+    expect(assignMock).not.toHaveBeenCalled();
   });
 
   it("shows signup confirmation feedback when email verification is required", async () => {
@@ -74,6 +79,25 @@ describe("auth cards", () => {
         screen.getByRole("button", { name: "Sign up" }).hasAttribute("disabled")
       ).toBe(false)
     );
-    expect(pushMock).not.toHaveBeenCalled();
+    expect(assignMock).not.toHaveBeenCalled();
+  });
+
+  it("hard-navigates to the vault after a successful login session", async () => {
+    signInWithPasswordMock.mockResolvedValue({
+      data: { session: { access_token: "token" } },
+      error: null,
+    });
+
+    render(<LoginCard />);
+
+    fireEvent.change(screen.getByPlaceholderText("you@example.com"), {
+      target: { value: "user@example.com" },
+    });
+    fireEvent.change(screen.getByPlaceholderText("••••••••"), {
+      target: { value: "password123" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Log in" }));
+
+    await waitFor(() => expect(assignMock).toHaveBeenCalledWith("/vault"));
   });
 });

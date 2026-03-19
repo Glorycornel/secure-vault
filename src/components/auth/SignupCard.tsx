@@ -46,7 +46,7 @@ export function SignupCard() {
         return;
       }
 
-      router.push("/vault");
+      window.location.assign("/vault");
     } catch (error) {
       setError(errorToMessage(error, "Unable to sign up right now. Please try again."));
     } finally {

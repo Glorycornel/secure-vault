@@ -32,7 +32,7 @@ export function LoginCard() {
 
     try {
       const supabase = getSupabaseClient();
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -42,7 +42,12 @@ export function LoginCard() {
         return;
       }
 
-      router.push("/vault");
+      if (!data.session) {
+        setError("Login succeeded but no session was created. Please try again.");
+        return;
+      }
+
+      window.location.assign("/vault");
     } catch (error) {
       setError(errorToMessage(error, "Unable to log in right now. Please try again."));
     } finally {
