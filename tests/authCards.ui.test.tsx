@@ -6,6 +6,7 @@ import { SignupCard } from "@/components/auth/SignupCard";
 const assignMock = jest.fn();
 const signInWithPasswordMock = jest.fn();
 const signUpMock = jest.fn();
+let assignSpy: jest.SpiedFunction<typeof window.location.assign>;
 
 jest.mock("next/navigation", () => ({
   useRouter: () => ({ push: jest.fn(), replace: jest.fn() }),
@@ -22,15 +23,18 @@ jest.mock("@/lib/supabaseClient", () => ({
 }));
 
 describe("auth cards", () => {
+  beforeAll(() => {
+    assignSpy = jest.spyOn(window.location, "assign").mockImplementation(assignMock);
+  });
+
+  afterAll(() => {
+    assignSpy.mockRestore();
+  });
+
   beforeEach(() => {
     assignMock.mockReset();
     signInWithPasswordMock.mockReset();
     signUpMock.mockReset();
-
-    Object.defineProperty(window, "location", {
-      configurable: true,
-      value: { assign: assignMock },
-    });
   });
 
   it("shows a login error and clears loading when sign-in throws", async () => {
