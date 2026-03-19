@@ -43,7 +43,9 @@ describe("auth cards", () => {
 
     await screen.findByText("Network down");
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Log in" }).hasAttribute("disabled")).toBe(false)
+      expect(
+        screen.getByRole("button", { name: "Log in" }).hasAttribute("disabled")
+      ).toBe(false)
     );
     expect(pushMock).not.toHaveBeenCalled();
   });
@@ -68,7 +70,9 @@ describe("auth cards", () => {
       "Account created. Check your email to confirm your account before logging in."
     );
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Sign up" }).hasAttribute("disabled")).toBe(false)
+      expect(
+        screen.getByRole("button", { name: "Sign up" }).hasAttribute("disabled")
+      ).toBe(false)
     );
     expect(pushMock).not.toHaveBeenCalled();
   });

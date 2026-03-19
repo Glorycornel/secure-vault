@@ -40,7 +40,9 @@ export function SignupCard() {
       }
 
       if (!data.session) {
-        setNotice("Account created. Check your email to confirm your account before logging in.");
+        setNotice(
+          "Account created. Check your email to confirm your account before logging in."
+        );
         return;
       }
 
