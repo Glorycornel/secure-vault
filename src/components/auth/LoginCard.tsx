@@ -6,6 +6,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { getSupabaseClient } from "@/lib/supabaseClient";
 
+function errorToMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === "string" && error) return error;
+  if (typeof error === "object" && error && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === "string" && message) return message;
+  }
+  return fallback;
+}
+
 export function LoginCard() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -20,20 +30,24 @@ export function LoginCard() {
     setLoading(true);
     setError(null);
 
-    const supabase = getSupabaseClient();
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const supabase = getSupabaseClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    setLoading(false);
+      if (error) {
+        setError(error.message);
+        return;
+      }
 
-    if (error) {
-      setError(error.message);
-      return;
+      router.push("/vault");
+    } catch (error) {
+      setError(errorToMessage(error, "Unable to log in right now. Please try again."));
+    } finally {
+      setLoading(false);
     }
-
-    router.push("/vault");
   }
 
   return (

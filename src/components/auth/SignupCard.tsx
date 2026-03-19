@@ -6,29 +6,50 @@ import Image from "next/image";
 import Link from "next/link";
 import { getSupabaseClient } from "@/lib/supabaseClient";
 
+function errorToMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message) return error.message;
+  if (typeof error === "string" && error) return error;
+  if (typeof error === "object" && error && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === "string" && message) return message;
+  }
+  return fallback;
+}
+
 export function SignupCard() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setNotice(null);
 
-    const supabase = getSupabaseClient();
-    const { error } = await supabase.auth.signUp({ email, password });
+    try {
+      const supabase = getSupabaseClient();
+      const { data, error } = await supabase.auth.signUp({ email, password });
 
-    setLoading(false);
+      if (error) {
+        setError(error.message);
+        return;
+      }
 
-    if (error) {
-      setError(error.message);
-      return;
+      if (!data.session) {
+        setNotice("Account created. Check your email to confirm your account before logging in.");
+        return;
+      }
+
+      router.push("/vault");
+    } catch (error) {
+      setError(errorToMessage(error, "Unable to sign up right now. Please try again."));
+    } finally {
+      setLoading(false);
     }
-
-    router.push("/vault");
   }
 
   return (
@@ -86,6 +107,12 @@ export function SignupCard() {
         {error && (
           <p className="rounded-lg bg-red-500/10 px-3 py-2 text-xs text-red-300">
             {error}
+          </p>
+        )}
+
+        {notice && (
+          <p className="rounded-lg bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200">
+            {notice}
           </p>
         )}
 
