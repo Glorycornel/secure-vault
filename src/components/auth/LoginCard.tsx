@@ -16,12 +16,51 @@ function errorToMessage(error: unknown, fallback: string) {
   return fallback;
 }
 
+function EyeIcon({ open }: { open: boolean }) {
+  if (open) {
+    return (
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 24 24"
+        className="h-4 w-4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
+        <circle cx="12" cy="12" r="3" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M3 3l18 18" />
+      <path d="M10.6 10.7a3 3 0 0 0 4 4" />
+      <path d="M9.9 5.1A11.5 11.5 0 0 1 12 5c6.5 0 10 7 10 7a17.7 17.7 0 0 1-4 4.9" />
+      <path d="M6.7 6.7A17.7 17.7 0 0 0 2 12s3.5 7 10 7a11.6 11.6 0 0 0 5.2-1.2" />
+    </svg>
+  );
+}
+
 export function LoginCard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const sessionExpired = searchParams.get("reason") === "session_expired";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,8 +115,11 @@ export function LoginCard() {
 
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <div className="space-y-1">
-          <label className="text-xs font-medium text-white/80">Email</label>
+          <label htmlFor="login-email" className="text-xs font-medium text-white/80">
+            Email
+          </label>
           <input
+            id="login-email"
             className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm text-white placeholder-white/40 transition outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/30"
             type="email"
             value={email}
@@ -89,16 +131,29 @@ export function LoginCard() {
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs font-medium text-white/80">Password</label>
-          <input
-            className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm text-white placeholder-white/40 transition outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/30"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
-            placeholder="••••••••"
-            required
-          />
+          <label htmlFor="login-password" className="text-xs font-medium text-white/80">
+            Password
+          </label>
+          <div className="relative">
+            <input
+              id="login-password"
+              className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 pr-12 text-sm text-white placeholder-white/40 transition outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-500/30"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              placeholder="••••••••"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((current) => !current)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              className="absolute inset-y-0 right-0 flex items-center px-3 text-white/60 transition hover:text-white"
+            >
+              <EyeIcon open={showPassword} />
+            </button>
+          </div>
         </div>
 
         {sessionExpired && !error && (

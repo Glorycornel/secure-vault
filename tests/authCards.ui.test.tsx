@@ -42,10 +42,10 @@ describe("auth cards", () => {
 
     render(<LoginCard />);
 
-    fireEvent.change(screen.getByPlaceholderText("you@example.com"), {
+    fireEvent.change(screen.getByLabelText("Email"), {
       target: { value: "user@example.com" },
     });
-    fireEvent.change(screen.getByPlaceholderText("••••••••"), {
+    fireEvent.change(screen.getByLabelText("Password"), {
       target: { value: "password123" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Log in" }));
@@ -67,10 +67,13 @@ describe("auth cards", () => {
 
     render(<SignupCard />);
 
-    fireEvent.change(screen.getByPlaceholderText("you@example.com"), {
+    fireEvent.change(screen.getByLabelText("Email"), {
       target: { value: "user@example.com" },
     });
-    fireEvent.change(screen.getByPlaceholderText("Minimum 8 characters"), {
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "password123" },
+    });
+    fireEvent.change(screen.getByLabelText("Confirm password"), {
       target: { value: "password123" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Sign up" }));
@@ -94,14 +97,33 @@ describe("auth cards", () => {
 
     render(<LoginCard />);
 
-    fireEvent.change(screen.getByPlaceholderText("you@example.com"), {
+    fireEvent.change(screen.getByLabelText("Email"), {
       target: { value: "user@example.com" },
     });
-    fireEvent.change(screen.getByPlaceholderText("••••••••"), {
+    fireEvent.change(screen.getByLabelText("Password"), {
       target: { value: "password123" },
     });
     fireEvent.click(screen.getByRole("button", { name: "Log in" }));
 
     await waitFor(() => expect(assignMock).toHaveBeenCalledWith("/vault"));
+  });
+
+  it("blocks signup when passwords do not match", async () => {
+    render(<SignupCard />);
+
+    fireEvent.change(screen.getByLabelText("Email"), {
+      target: { value: "user@example.com" },
+    });
+    fireEvent.change(screen.getByLabelText("Password"), {
+      target: { value: "password123" },
+    });
+    fireEvent.change(screen.getByLabelText("Confirm password"), {
+      target: { value: "password124" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Sign up" }));
+
+    await screen.findByText("Passwords do not match.");
+    expect(signUpMock).not.toHaveBeenCalled();
+    expect(assignMock).not.toHaveBeenCalled();
   });
 });
